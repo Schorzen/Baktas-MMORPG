@@ -21,6 +21,7 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 - **Quests:** Elder Maren by the town crystal gives a five-part quest chain that ends with the Ancient Warden.
 - **Loot and gear:** monsters drop weapons, armor and trinkets in five rarities (Common to Legendary). Open the bag to compare, equip or sell. Better weapons glow in their rarity colour.
 - **Sound and music:** combat sounds and calm generated music that turns darker in Duskwood and the Barrens. Mute with the ♫ button.
+- **Animations:** keyframed attacks for every skill, 3-hit combos for Warrior and Assassin, a real bow draw for the Marksman, staff casting for the Mage, class-specific idle and run styles, hit flinches, kneeling death and respawn, and a level-up pose. Monsters wind up before attacking (golems show a red warning zone), flinch when hit, and each type has its own death.
 - **Saving:** progress saves automatically on the phone, one hero per class.
 
 ## World
