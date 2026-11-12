@@ -671,7 +671,7 @@ function buildHeroGlb(key,over){
     const hp=new THREE.Vector3();hb.getWorldPosition(hp);hp.add(new THREE.Vector3(hand.endsWith('R')?-.02:.02,-.135,.015));al.position.copy(hb.worldToLocal(hp));
     const wrap=new THREE.Group();wrap.rotation.x=rx||0;{const wr=WPN_ROT[key]||{};wrap.scale.setScalar((name==='W_off'&&wr.offScale)||wr.scale||1);}al.add(wrap);hb.add(al);
     const list=[w,...extra.filter(Boolean)];list.forEach(o=>{o.parent.remove(o);o.position.set(0,0,0);o.quaternion.identity();wrap.add(o);o.traverse(c=>{if(c.isMesh)c.userData.wpn=1;});});
-    (root.userData.tiers=root.userData.tiers||[]).push(list);return wrap;};
+    (root.userData.tiers=root.userData.tiers||[]).push(list);(root.userData.wpnSlots=root.userData.wpnSlots||[]).push({wrap,hand:al,rx:rx||0,name});return wrap;};
   const R2=WPN_ROT[key]||{};
   const main=attach('W_main','hand_R',R2.main),off=attach('W_off','hand_L',R2.off);
   if(key==='mage'&&main){root.userData.staff=main;const orb=root.getObjectByName('W_mainOrb');
@@ -681,9 +681,25 @@ function buildHeroGlb(key,over){
     const nock=new THREE.Group();bow.add(nock);nock.add(box(.02,.02,.85,M(0x8a6a44),0,0,.38));
     const tip=new THREE.Mesh(new THREE.ConeGeometry(.035,.12,6),M(0xd7dde8,{metalness:.5,emissive:0xfff3a0,emissiveIntensity:0}));tip.rotation.x=Math.PI/2;tip.position.z=.86;nock.add(tip);
     nock.visible=false;root.userData.bow=bow;root.userData.bowStr={sT,sB,nock,tip};}
+  // sheath anchors: weapons ride on the back (or at the hips for daggers) out of combat
+  const SH=SHEATH[key]||{};
+  (root.userData.wpnSlots||[]).forEach(sl=>{const d=SH[sl.name];if(!d)return;const bb=B[d.b];if(!bb)return;
+    const an=new THREE.Group();an.quaternion.copy(wq(bb)).invert();an.position.copy(bb.worldToLocal(new THREE.Vector3(d.p[0],d.p[1],d.p[2])));
+    const pl=new THREE.Group();pl.rotation.set(d.r[0],d.r[1],d.r[2],'ZYX');an.add(pl);bb.add(an);sl.sheath=pl;});
   setWeaponTier(root,1);rimify(root);
   return root;
 }
+const SHEATH={
+  warrior:{W_main:{b:'chest',p:[.16,1.86,-.33],r:[Math.PI/2,0,-.35]},W_off:{b:'chest',p:[.05,1.39,-.15],r:[0,-Math.PI/2,0]}},
+  mage:{W_main:{b:'chest',p:[.17,1.14,-.21],r:[0,0,.5]}},
+  marksman:{W_off:{b:'chest',p:[0,1.45,-.25],r:[0,Math.PI,-.6]}},
+  assassin:{W_main:{b:'hips',p:[.185,1.13,-.04],r:[Math.PI/2,.15,.1]},W_off:{b:'hips',p:[-.185,1.13,-.04],r:[Math.PI/2,-.15,-.1]}}};
+const DRAW_ANIM={warrior:'wDraw',mage:'mDraw',marksman:'bDraw',assassin:'aDraw'};
+function setSheathed(obj,on){const u=obj.userData;if(!u.wpnSlots)return;u.pendSh=null;if(!!u.sheathed===on)return;u.sheathed=on;
+  u.wpnSlots.forEach(sl=>{if(!sl.sheath)return;(on?sl.sheath:sl.hand).add(sl.wrap);sl.wrap.rotation.set(on?0:sl.rx,0,0);});}
+function stowWeapons(obj,key,on,anim){const u=obj.userData;if(!u.wpnSlots||(!!u.sheathed===on&&!u.pendSh))return;
+  if(!anim){setSheathed(obj,on);return;}const d=playAct(obj,DRAW_ANIM[key]);u.pendSh={on,at:NOW+d*.42};
+  if(obj===(P&&P.obj))sfx(on?'sheathe':'unsheathe');}
 function setWeaponTier(obj,t){(obj.userData.tiers||[]).forEach(list=>list.forEach((o,i)=>{o.visible=i===Math.min(t,list.length)-1;}));obj.userData.tier=t;}
 const _dq=new THREE.Quaternion();
 function applyDrive(dr){for(const e of dr){_dq.setFromEuler(e.d.rotation);e.bone.quaternion.copy(e.RpInv).multiply(_dq).multiply(e.Rb);
@@ -877,6 +893,10 @@ const ANIMS={
     {k:.55,e:'out',p:{bh:.06,bx:-.12,hx:-.35,aRz:.7,aLz:-.7,aRx:-.4,aLx:-.4}},{k:1,p:{}}]}
 };
 ANIMS.aL={dur:.3,hit:.42,kf:mirrorKf(ANIMS.aR.kf)};
+ANIMS.wDraw={dur:.72,kf:[{k:0,p:{}},{k:.42,p:{aRx:-2.7,aRz:.25,aRy:-.2,eR:-1.9,aLx:.7,aLz:-.35,eL:-1.3,by:.12,hx:-.1}},{k:1,p:{}}]};
+ANIMS.mDraw={dur:.66,kf:[{k:0,p:{}},{k:.42,p:{aRx:-2.7,aRz:.25,aRy:-.2,eR:-1.9,by:.12,hx:-.1}},{k:1,p:{}}]};
+ANIMS.bDraw={dur:.66,kf:[{k:0,p:{}},{k:.42,p:{aLx:-2.7,aLz:-.25,aLy:.2,eL:-1.9,by:-.12,hx:-.1}},{k:1,p:{}}]};
+ANIMS.aDraw={dur:.5,kf:[{k:0,p:{}},{k:.42,p:{aRx:.22,aLx:.22,aRz:.3,aLz:-.3,eR:-.55,eL:-.55,bx:.1,hx:.1}},{k:1,p:{}}]};
 function playAct(obj,name,dur){const A=ANIMS[name];if(!A)return 0;dur=dur||A.dur;obj.userData.act={name,t0:NOW,dur};return dur;}
 function samplePose(kf,k,p){let i=0;while(i<kf.length-2&&k>kf[i+1].k)i++;const a=kf[i],b=kf[i+1];
   const u=clamp((k-a.k)/Math.max(1e-4,b.k-a.k),0,1),e=(EASE[b.e]||EASE.io)(u);
@@ -906,6 +926,7 @@ function animateHero(obj,key,t,move){
   if(act){const A=ANIMS[act.name],k=(NOW-act.t0)/act.dur;if(k>=1&&!A.hold)u.act=null;else samplePose(A.kf,clamp(k,0,1),p);}
   const fl=u.flinch0!=null?1-(NOW-u.flinch0)/.3:0;
   if(fl>0){const f=Math.sin(fl*PI*.5);p.bx-=.28*f;p.hx-=.4*f;p.bf-=.12*f;p.aRz+=.35*f;p.aLz-=.35*f;}
+  if(u.pendSh&&NOW>=u.pendSh.at)setSheathed(obj,u.pendSh.on);
   if(u.drive){
     // ease every joint toward its target: no snapping, natural overlap and follow-through
     const dt=Math.min(.1,Math.max(0,NOW-(u.lt||NOW)));u.lt=NOW;const sm=u.sm||(u.sm={});const rawL=p.aLx,rawR=p.aRx;
@@ -935,9 +956,9 @@ function animateHero(obj,key,t,move){
     r.head.rotation.set(p.hx,p.hy,0);p.wL=p.wR=0;
   }
   const lean=u.drive?p.bx:0;
-  if(u.staff)u.staff.rotation.x=-(p.aRx+p.eR+p.wR+lean)*.78;
+  if(u.staff&&!u.sheathed)u.staff.rotation.x=-(p.aRx+p.eR+p.wR+lean)*.78;
   if(u.orb){u.orb.rotation.y=t*2+p.glow*6;u.orb.scale.setScalar(1+p.glow*.9);u.orb.material.emissiveIntensity=(u.orb.userData.gearI!=null?u.orb.userData.gearI:1.6)+p.glow*3;}
-  if(u.bow){u.bow.rotation.x=-(p.aLx+p.eL+p.wL+lean);const d=clamp(p.draw,0,1.2)*.3,s=u.bowStr,L=Math.hypot(.64,d),a=Math.atan2(d,.64);
+  if(u.bow){if(!u.sheathed)u.bow.rotation.x=-(p.aLx+p.eL+p.wL+lean);const d=clamp(p.draw,0,1.2)*.3,s=u.bowStr,L=Math.hypot(.64,d),a=Math.atan2(d,.64);
     s.sT.position.set(0,.32,-d/2);s.sT.scale.y=L/.64;s.sT.rotation.x=a;
     s.sB.position.set(0,-.32,-d/2);s.sB.scale.y=L/.64;s.sB.rotation.x=-a;
     s.nock.position.z=-d;s.nock.visible=p.draw>.06;s.tip.material.emissiveIntensity=p.glow*2.5;}
@@ -1212,6 +1233,8 @@ function sfx(n){
     case 'slice':noise({f:5200,f2:1600,dur:.11,vol:.3,ft:'highpass',q:.7});tone({f:2700,f2:1900,type:'triangle',dur:.07,vol:.05});break;
     case 'draw':tone({f:150,f2:240,type:'sawtooth',dur:.3,vol:.03});noise({f:900,dur:.25,vol:.04,q:4});break;
     case 'charge':tone({f:300,f2:900,type:'sine',dur:.45,vol:.06,verb:1});tone({f:450,f2:1350,type:'triangle',dur:.45,vol:.03});break;
+    case 'unsheathe':noise({f:2600,f2:5200,dur:.28,vol:.16,q:3});tone({f:1900,f2:2600,type:'triangle',dur:.25,vol:.04});break;
+    case 'sheathe':noise({f:4200,f2:1800,dur:.24,vol:.13,q:3});tone({f:420,f2:300,type:'triangle',dur:.08,vol:.05,when:.2});break;
     case 'step':noise({f:220,f2:90,dur:.08,vol:.07,ft:'lowpass'});break;
     case 'click':tone({f:1200,f2:900,dur:.05,vol:.06,type:'triangle'});break;
     case 'coin':tone({f:1760,dur:.08,vol:.07,type:'square'});tone({f:2637,dur:.15,vol:.06,type:'square',when:.06});break;
@@ -1309,7 +1332,7 @@ function populate(){
 function spawnNpc(i){
   const k=KEYS[i%4],[name,guild]=NPC_NAMES[i];const obj=buildHero(k);const a=rand(0,6),r=rand(6,30);if(obj.userData.tiers)setWeaponTier(obj,1+Math.floor(Math.random()*Math.random()*3.2));
   obj.position.set(Math.cos(a)*r,0,Math.sin(a)*r);scene.add(obj);
-  const n={name,key:k,obj,t:rand(0,9),think:rand(0,2),target:null,goal:null,atkCd:0,atkT:0,moving:0,ranged:k==='mage'||k==='marksman',chat:rand(6,30),lvl:Math.round(rand(2,9))};
+  setSheathed(obj,true);const n={name,key:k,obj,t:rand(0,9),think:rand(0,2),target:null,goal:null,atkCd:0,atkT:0,moving:0,ranged:k==='mage'||k==='marksman',chat:rand(6,30),lvl:Math.round(rand(2,9))};
   n.el=makePlate('npc',`<b>${name}</b>${guild?`<span class="gt">&lt;${guild}&gt;</span>`:''}`);npcs.push(n);
 }
 
@@ -1353,7 +1376,7 @@ function enterWorld(){
      target:null,auto:false,engage:false,pending:null,atkT:0,t:0,moving:0,dash:null,dashCd:0,buffs:{cry:0,stealth:0},lastHit:-99,dead:false,zone:-1,
      gear:{weapon:null,armor:null,trinket:null},bag:[],q:{i:0,state:'avail',n:0},bonus:{},newLoot:false,saveT:0};
   if(sv){P.lvl=sv.lvl||1;P.xp=sv.xp||0;P.silver=sv.silver||0;P.gear=Object.assign(P.gear,sv.gear||{});P.bag=sv.bag||[];P.q=sv.q||P.q;P.clears=sv.clears||0;}
-  recalcStats();P.hp=P.maxHp;P.mp=P.maxMp;applyGearLook();
+  recalcStats();P.hp=P.maxHp;P.mp=P.maxMp;applyGearLook();setSheathed(obj,true);
   P.el=makePlate('me',`<b>${esc(name)}</b>`);
   $('#pname').textContent=name;$('#pcrest').textContent=def.glyph;$('#pframe').style.cssText=`--c1:${def.c1};--c2:${def.c2}`;
   $('#skills').innerHTML=def.skills.map((s,i)=>`<button type="button" class="sk" data-i="${i}" aria-label="${s.name}"><span class="k">${i+1}</span>${s.glyph}${s.mana?`<span class="m">${s.mana}</span>`:''}<span class="cd" hidden></span></button>`).join('');
@@ -1568,7 +1591,7 @@ function castSkill(i,auto){
     const td=dist2(P.pos,tg.obj.position);
     if(td>sk.range){if(sk.dash&&td<=sk.dash&&P.dashCd<=0&&(!auto||P.engage))dashTo=true;else{P.pending=i;P.engage=true;return false;}}
   }
-  P.mp-=sk.mana;P.cds[i]=sk.cd;P.atkT=.35;P.swing=null;
+  P.mp-=sk.mana;P.cds[i]=sk.cd;P.atkT=.35;P.swing=null;P.lastCast=P.t;P.calmT=0;if(P.obj.userData.sheathed||P.obj.userData.pendSh)setSheathed(P.obj,false);
   P.skEls[i].classList.remove('flash');void P.skEls[i].offsetWidth;P.skEls[i].classList.add('flash');
   if(tg&&sk.type!=='roll'&&sk.type!=='blink')faceTo(P.obj,tg.obj.position);
   const D=()=>rand(sk.dmg[0],sk.dmg[1]);const fwd=new THREE.Vector3(Math.sin(P.obj.rotation.y),0,Math.cos(P.obj.rotation.y));
@@ -1762,6 +1785,10 @@ function updatePlayer(dt){
   P.atkT=Math.max(0,P.atkT-dt);
   if(P.dead){P.deadT+=dt;animateHero(P.obj,P.key,P.t,0);if(P.deadT>.5){P.obj.rotation.z=Math.min(Math.PI/2,P.obj.rotation.z+dt*3.2);P.obj.position.y=Math.max(-.25,P.obj.position.y-dt*.3);}return;}
   const prevYaw=P.obj.rotation.y;
+  {const u=P.obj.userData,tg=P.target&&!P.target.dead?P.target:null;
+    const fight=(tg&&dist2(P.pos,tg.obj.position)<18)||P.t-P.lastHit<4||P.t-(P.lastCast||-99)<6||(P.inDungeon&&DUN.active&&!DUN.cleared);
+    if(fight){P.calmT=0;if(u.sheathed&&!u.pendSh&&!P.dash)stowWeapons(P.obj,P.key,false,!u.act);}
+    else{P.calmT=(P.calmT||0)+dt;if(P.calmT>3.5&&!u.sheathed&&!u.pendSh&&!u.act&&!P.dash)stowWeapons(P.obj,P.key,true,true);}}
   const regenFast=P.t-P.lastHit>5;
   P.hp=Math.min(P.maxHp,P.hp+dt*(regenFast?P.maxHp*.05:1.5));P.mp=Math.min(P.maxMp,P.mp+dt*(regenFast?P.maxMp*.06:P.maxMp*.02));
   let ix=joy.x,iy=joy.y;
@@ -1838,11 +1865,12 @@ function updateNpcs(dt){
         else if(!n.goal&&Math.random()<.5){const a=rand(0,6.28),r=rand(8,58);n.goal=new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r);}}}
     if(n.target&&!n.target.dead){const rng=n.ranged?13:2.5;const d=dist2(n.obj.position,n.target.obj.position);
       if(d>rng){moveToward(n.obj,n.target.obj.position,6.5,dt,rng*.9);moving=1;}
-      else{faceTo(n.obj,n.target.obj.position);if(n.atkCd<=0){n.atkCd=rand(1.1,1.6);const sk=CLASSES[n.key].skills[0],tgt=n.target;
+      else{faceTo(n.obj,n.target.obj.position);n.calm=0;if(n.obj.userData.sheathed&&!n.obj.userData.pendSh){stowWeapons(n.obj,n.key,false,true);n.atkCd=Math.max(n.atkCd,.5);}if(n.atkCd<=0){n.atkCd=rand(1.1,1.6);const sk=CLASSES[n.key].skills[0],tgt=n.target;
         const nm={warrior:Math.random()<.5?'wS1':'wS2',mage:'mBolt',marksman:'bShot',assassin:Math.random()<.5?'aR':'aL'}[n.key],A=ANIMS[nm],dur=playAct(n.obj,nm);n.atkT=dur;
         if(!n.ranged)weaponTrail(nm[1]==='S'?(nm==='wS1'?'R':'L'):nm.slice(1),sk.color,dur,n.key==='warrior'?1.2:1,A.hit,n.obj);
         setTimeout(()=>{if(tgt.dead)return;if(n.ranged)shoot(n.obj.position,tgt,null,Object.assign({},sk),n);else dmgMob(tgt,rand(8,13)*(1+.1*n.lvl),{npc:n});},dur*A.hit*1000);}}}
     else if(n.goal){if(!moveToward(n.obj,n.goal,5.5,dt,.5))n.goal=null;else moving=1;}
+    if(!n.target||n.target.dead){n.calm=(n.calm||0)+dt;const u=n.obj.userData;if(n.calm>3&&!u.sheathed&&!u.pendSh&&!u.act)stowWeapons(n.obj,n.key,true,true);}
     const c=n.obj.position;clampWorld(c);
     n.moving=(n.moving||0)+(moving-(n.moving||0))*Math.min(1,dt*10);
     animateHero(n.obj,n.key,n.t,n.moving);
