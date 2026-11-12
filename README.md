@@ -9,7 +9,7 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 - **Warrior** – Slash, Whirlwind, Charge, Battle Cry
 - **Mage** – Fire Bolt, Frost Nova, Meteor, Blink
 - **Marksman** – Aimed Shot, Volley, Piercing Arrow, Evasive Roll
-- **Assassin** – Stab, Shadowstep, Fan of Knives, Vanish
+- **Assassin** – Shadow Stab (teleports to enemies up to 9 m away), Shadowstep, Fan of Knives, Vanish
 
 ## Controls
 - Left stick: move
