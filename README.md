@@ -19,7 +19,7 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 
 ## Models
 The four heroes are built in Blender from `models/heroes.py` and the monsters (slime, wolf, rune golem, Ancient Warden) from `models/mobs.py`.
-Heroes are (smooth meshes, a 20-bone skeleton, outfits and weapons) and exported as rigged `.glb` files in `models/`. They are embedded in `index.html`, so the game is still a single file. To rebuild after editing the script:
+Each script builds smooth meshes, a skeleton, outfits and weapons, and exports rigged `.glb` files into `models/`. The models are embedded in `index.html`, so the game is still a single file. To rebuild after editing the script:
 
 ```
 pip install bpy
