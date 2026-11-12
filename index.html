@@ -338,7 +338,7 @@ body.touch #hint{bottom:auto;top:calc(var(--top) + 198px);white-space:normal;tex
 </div>
 
 <div id="gate" hidden><div><h2>Baktas</h2><p>This game is made for phones.<br>Open this page on your phone to play.</p><p class="url" id="gateUrl"></p></div></div>
-<div id="rotate" hidden><div><div class="phone"></div><h2>Turn your phone sideways</h2><p>Baktas plays best in landscape.</p><button class="btn ghost" id="portraitBtn" type="button">Play in portrait anyway</button></div></div>
+<div id="rotate" hidden><div><div class="phone"></div><h2>Baktas plays in landscape</h2><p id="rotMsg">Tap below and your phone turns to landscape full screen.</p><button class="btn" id="landBtn" type="button">Play in landscape</button><button class="btn ghost" id="portraitBtn" type="button">Play in portrait anyway</button></div></div>
 <div id="bag" class="sheet" hidden><div class="sheet-in">
   <header class="sh-head"><h3>Inventory</h3><span id="bagSilver"></span><button type="button" class="btn ghost" id="bagClose">Close</button></header>
   <div class="bag-grid">
@@ -370,8 +370,14 @@ const portrait=matchMedia('(orientation:portrait)');
 function checkRotate(){$('#rotate').hidden=!TOUCH||portraitOk||!portrait.matches;}
 portrait.addEventListener?portrait.addEventListener('change',checkRotate):portrait.addListener(checkRotate);
 $('#portraitBtn').addEventListener('click',()=>{portraitOk=true;checkRotate();});checkRotate();
-async function goLandscape(){try{const el=document.documentElement;if(el.requestFullscreen&&!document.fullscreenElement)await el.requestFullscreen({navigationUI:'hide'});
-  if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
+async function goLandscape(){
+  try{const el=document.documentElement,fs=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(fs&&!(document.fullscreenElement||document.webkitFullscreenElement))await fs.call(el,{navigationUI:'hide'});}catch(e){}
+  try{if(screen.orientation&&screen.orientation.lock){await screen.orientation.lock('landscape');return true;}}catch(e){}
+  return !portrait.matches;}
+$('#landBtn').addEventListener('click',async()=>{const ok=await goLandscape();
+  setTimeout(()=>{checkRotate();if(!ok&&portrait.matches){$('#rotMsg').textContent='Your browser can\u2019t rotate by itself. Turn your phone sideways, or play in portrait.';$('#landBtn').hidden=true;}},350);});
+document.addEventListener('fullscreenchange',()=>setTimeout(()=>{checkRotate();resize();},300));
 const T=s=>s+'︎';
 
 /* ================= DATA ================= */
