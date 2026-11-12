@@ -175,6 +175,7 @@ def bones_def():
         B['upperarm_' + s] = ((.215 * k, 1.765, 0), (.25 * k, 1.43, -.01), 'chest')
         B['forearm_' + s] = ((.25 * k, 1.43, -.01), (.27 * k, 1.12, .02), 'upperarm_' + s)
         B['hand_' + s] = ((.27 * k, 1.12, .02), (.265 * k, .96, .03), 'forearm_' + s)
+        B['fingers_' + s] = ((.268 * k, 1.005, .03), (.255 * k, .95, .03), 'hand_' + s)
         B['thigh_' + s] = ((.1 * k, 1.1, 0), (.11 * k, .6, .015), 'hips')
         B['shin_' + s] = ((.11 * k, .6, .015), (.115 * k, .1, -.01), 'thigh_' + s)
         B['foot_' + s] = ((.115 * k, .1, -.01), (.115 * k, .03, .15), 'shin_' + s)
@@ -233,7 +234,10 @@ def hand(k, m, s):
     for i, (z, ln) in enumerate(((.058, 1.0), (.038, 1.05), (.018, 1.0), (-.001, .85))):
         y0 = 1.005
         pts = [(x, y0, z), (x - .004 * k, y0 - .03 * ln, z), (x - .018 * k, y0 - .052 * ln, z), (x - .034 * k, y0 - .05 * ln, z + .002), (x - .042 * k, y0 - .036 * ln, z + .002)]
-        part(tube(pts, [.0115, .011, .0105, .0098, .008], 6), m, 'hand_' + s, name='finger')
+        def fw(v, z=z):
+            t = max(0., min(1., math.hypot(v[0] - x, v[1] - 1.012) / .045))
+            return {'hand_' + s: 1 - t, 'fingers_' + s: t} if t > 0 else {'hand_' + s: 1.}
+        part(tube(pts, [.0115, .011, .0105, .0098, .008], 6), m, fw, name='finger')
     part(tube([(x - .006 * k, 1.07, .062), (x - .016 * k, 1.04, .076), (x - .03 * k, 1.015, .07), (x - .038 * k, 1.0, .058)], [.013, .012, .011, .009], 6), m, 'hand_' + s, name='thumb')
 
 def body(look, arm_mat, leg_mat, hand_mat, foot_mat=None, head_mat=None, ears=True, torso_mat=None):
