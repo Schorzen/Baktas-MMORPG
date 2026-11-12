@@ -165,19 +165,19 @@ SIDE = {'R': 1, 'L': -1}
 def bones_def():
     B = {
         'root': ((0, 0, 0), (0, .3, 0), None),
-        'hips': ((0, .93, 0), (0, 1.15, 0), 'root'),
-        'spine': ((0, 1.15, 0), (0, 1.42, 0), 'hips'),
-        'chest': ((0, 1.42, 0), (0, 1.76, 0), 'spine'),
-        'neck': ((0, 1.76, 0), (0, 1.9, 0), 'chest'),
-        'head': ((0, 1.9, 0), (0, 2.3, 0), 'neck'),
+        'hips': ((0, 1.08, 0), (0, 1.28, 0), 'root'),
+        'spine': ((0, 1.28, 0), (0, 1.5, 0), 'hips'),
+        'chest': ((0, 1.5, 0), (0, 1.78, 0), 'spine'),
+        'neck': ((0, 1.78, 0), (0, 1.92, .005), 'chest'),
+        'head': ((0, 1.92, .005), (0, 2.2, .005), 'neck'),
     }
     for s, k in SIDE.items():
-        B['upperarm_' + s] = ((.33 * k, 1.7, 0), (.37 * k, 1.41, 0), 'chest')
-        B['forearm_' + s] = ((.37 * k, 1.41, 0), (.4 * k, 1.12, .01), 'upperarm_' + s)
-        B['hand_' + s] = ((.4 * k, 1.12, .01), (.41 * k, 1.0, .015), 'forearm_' + s)
-        B['thigh_' + s] = ((.13 * k, .93, 0), (.145 * k, .55, .02), 'hips')
-        B['shin_' + s] = ((.145 * k, .55, .02), (.15 * k, .14, -.01), 'thigh_' + s)
-        B['foot_' + s] = ((.15 * k, .14, -.01), (.15 * k, .05, .16), 'shin_' + s)
+        B['upperarm_' + s] = ((.215 * k, 1.765, 0), (.25 * k, 1.43, -.01), 'chest')
+        B['forearm_' + s] = ((.25 * k, 1.43, -.01), (.27 * k, 1.12, .02), 'upperarm_' + s)
+        B['hand_' + s] = ((.27 * k, 1.12, .02), (.265 * k, .96, .03), 'forearm_' + s)
+        B['thigh_' + s] = ((.1 * k, 1.1, 0), (.11 * k, .6, .015), 'hips')
+        B['shin_' + s] = ((.11 * k, .6, .015), (.115 * k, .1, -.01), 'thigh_' + s)
+        B['foot_' + s] = ((.115 * k, .1, -.01), (.115 * k, .03, .15), 'shin_' + s)
     return B
 BONES = bones_def()
 DEFORM = [b for b in BONES if b != 'root']
@@ -200,7 +200,7 @@ def side_of(v):
     return 'R' if v[0] >= 0 else 'L'
 
 def mantle_w(v):
-    t = max(0., min(1., (abs(v[0]) - .2) / .15)) * .22
+    t = max(0., min(1., (abs(v[0]) - .15) / .12)) * .22
     return {'chest': 1 - t, 'upperarm_' + side_of(v): t} if t > 0 else {'chest': 1.}
 
 # ---------------------------------------------------------------- part registry
@@ -226,39 +226,48 @@ def part(VF, m, weights, smooth=True, name='part'):
 LIMB_R = ['upperarm_#', 'forearm_#', 'hand_#']
 LEG_R = ['thigh_#', 'shin_#', 'foot_#']
 
-def body(look, arm_mat, leg_mat, hand_mat, foot_mat=None, head_mat=None, ears=True):
+def hand(k, m, s):
+    """Palm + four curled fingers + thumb, shaped to close around a grip."""
+    x = .268 * k
+    part(ell((x, 1.05, .03), (.022, .048, .042), 10, 8), m, 'hand_' + s, name='palm')
+    for i, (z, ln) in enumerate(((.058, 1.0), (.038, 1.05), (.018, 1.0), (-.001, .85))):
+        y0 = 1.005
+        pts = [(x, y0, z), (x - .004 * k, y0 - .03 * ln, z), (x - .018 * k, y0 - .052 * ln, z), (x - .034 * k, y0 - .05 * ln, z + .002), (x - .042 * k, y0 - .036 * ln, z + .002)]
+        part(tube(pts, [.0115, .011, .0105, .0098, .008], 6), m, 'hand_' + s, name='finger')
+    part(tube([(x - .006 * k, 1.07, .062), (x - .016 * k, 1.04, .076), (x - .03 * k, 1.015, .07), (x - .038 * k, 1.0, .058)], [.013, .012, .011, .009], 6), m, 'hand_' + s, name='thumb')
+
+def body(look, arm_mat, leg_mat, hand_mat, foot_mat=None, head_mat=None, ears=True, torso_mat=None):
     skin = mat('Skin', look['skin'], .62)
     for k in (1, -1):
         s = 'R' if k > 0 else 'L'
-        arm = tube([(.33 * k, 1.72, 0), (.35 * k, 1.56, 0), (.37 * k, 1.41, 0), (.385 * k, 1.27, .005), (.4 * k, 1.14, .01)],
-                   [.074, .068, .058, .054, .046], 12)
+        arm = tube([(.215 * k, 1.775, 0), (.232 * k, 1.6, -.005), (.25 * k, 1.43, -.01), (.262 * k, 1.27, .005), (.27 * k, 1.13, .02)],
+                   [.058, .053, .043, .039, .031], 14)
         part(arm, arm_mat, ('auto', ['chest', 'upperarm_' + s, 'forearm_' + s, 'hand_' + s]), name='arm')
-        hand = ell((.405 * k, 1.065, .02), (.048, .066, .05), 12, 8)
-        part(hand, hand_mat, 'hand_' + s, name='hand')
-        thumb = ell((.38 * k, 1.07, .055), (.022, .035, .022), 8, 6)
-        part(thumb, hand_mat, 'hand_' + s, name='thumb')
-        leg = tube([(.125 * k, .97, 0), (.135 * k, .76, .01), (.145 * k, .55, .02), (.148 * k, .36, .005), (.15 * k, .17, -.01)],
-                   [.105, .093, .074, .068, .054], 12)
+        hand(k, hand_mat, s)
+        leg = tube([(.1 * k, 1.12, 0), (.105 * k, .86, .008), (.11 * k, .6, .015), (.113 * k, .35, .0), (.115 * k, .12, -.01)],
+                   [.084, .07, .053, .049, .038], 14)
         part(leg, leg_mat, ('auto', ['hips', 'thigh_' + s, 'shin_' + s]), name='leg')
-        foot = ell((.15 * k, .075, .045), (.068, .07, .14), 12, 8)
-        part(foot, foot_mat or leg_mat, ('auto', ['shin_' + s, 'foot_' + s]), name='foot')
-        sh = ell((.3 * k, 1.69, 0), (.09, .085, .09), 12, 8)
-        part(sh, arm_mat, ('auto', ['chest', 'upperarm_' + s]), name='shoulder')
+        part(ell((.115 * k, .05, .045), (.046, .05, .11), 12, 8), foot_mat or leg_mat, ('auto', ['shin_' + s, 'foot_' + s]), name='foot')
+        part(ell((.2 * k, 1.75, 0), (.072, .068, .072), 12, 8), arm_mat, ('auto', ['chest', 'upperarm_' + s]), name='shoulder')
+    part(lathe([(0, 1.05), (.12, 1.06), (.162, 1.12), (.158, 1.22), (.142, 1.34), (.148, 1.44), (.172, 1.56), (.186, 1.66), (.182, 1.73), (.148, 1.79), (.07, 1.83), (0, 1.84)],
+               sz=.66, seg=22), torso_mat or arm_mat, ('auto', ['hips', 'spine', 'chest']), name='trunk')
     hm = head_mat or skin
-    part(ell((0, 2.04, 0), (.185, .205, .19), 22, 14), hm, 'head', name='head')
-    part(ell((0, 1.965, .035), (.145, .115, .14), 18, 10), hm, 'head', name='jaw')
-    part(tube([(0, 1.74, 0), (0, 1.93, .01)], [.068, .062], 12), hm if head_mat else skin, ('auto', ['neck', 'head', 'chest']), name='neck')
+    part(ell((0, 2.065, .005), (.108, .132, .122), 22, 14), hm, 'head', name='head')
+    part(ell((0, 1.975, .03), (.09, .072, .098), 16, 10), hm, 'head', name='jaw')
+    part(tube([(0, 1.77, 0), (0, 1.94, .012)], [.048, .044], 12), hm if head_mat else skin, ('auto', ['neck', 'head', 'chest']), name='neck')
     if not head_mat:
-        part(tube([(0, 2.04, .17), (0, 1.995, .215)], [.032, .012], 8), skin, 'head', name='nose')
+        part(ell((0, 2.095, .098), (.088, .02, .032), 12, 6), skin, 'head', name='brow')
+        part(tube([(0, 2.065, .118), (0, 2.03, .143), (0, 2.015, .138)], [.016, .017, .01], 8), skin, 'head', name='nose')
+        part(ell((0, 1.985, .113), (.032, .01, .012), 8, 5), mat('Lip', 0xa8645a, .6), 'head', name='mouth')
         if ears:
             for k in (1, -1):
-                part(ell((.185 * k, 2.03, -.01), (.03, .055, .04), 8, 6), skin, 'head', name='ear')
+                part(ell((.108 * k, 2.055, -.01), (.016, .034, .024), 8, 6), skin, 'head', name='ear')
 
-def eyes(m, brow=None, y=2.06, z=.168):
+def eyes(m, brow=None, y=2.066, z=.104):
     for k in (1, -1):
-        part(ell((.068 * k, y, z), (.034, .03, .02), 10, 6), m, 'head', name='eye')
+        part(ell((.04 * k, y, z), (.019, .011, .009), 10, 6), m, 'head', name='eye')
         if brow is not None:
-            part(cube((.07 * k, y + .055, z + .01), (.085, .022, .03), (0, 0, -.18 * k)), brow, 'head', smooth=False, name='brow')
+            part(xf(ell((0, 0, 0), (.026, .007, .009), 8, 5), rot=(0, 0, -.12 * k), t=(.043 * k, y + .029, z + .008)), brow, 'head', name='brow')
 
 def torso(prof, m, sz=.7, name='torso', a0=0., a1=TAU, wfun=None):
     part(lathe(prof, sz=sz, seg=24, a0=a0, a1=a1), m, wfun or ('auto', ['hips', 'spine', 'chest']), name=name)
@@ -270,63 +279,67 @@ def wpart(group, VF, m, smooth=True):
 
 # ---------------------------------------------------------------- classes
 def build_warrior():
-    L = dict(skin=0xd9a07a, main=0x8a939e, trim=0xc9a15a, dark=0x3a3f46, cape=0x8e2f29)
-    steel = mat('Main', L['main'], .38, .7); trim = mat('Trim', L['trim'], .35, .8); dark = mat('Dark', L['dark'], .8)
-    leather = mat('Leather', 0x4a3424, .75); cape = mat('Cape', L['cape'], .85, cull=False); hair = mat('Hair', 0x5a3a22, .9)
+    L = dict(skin=0xc98f6c, main=0x8d96a1, trim=0xb8924e, dark=0x34383f, cape=0x7e2a25)
+    steel = mat('Main', L['main'], .32, .75); trim = mat('Trim', L['trim'], .35, .8); dark = mat('Dark', L['dark'], .85)
+    leather = mat('Leather', 0x4a3424, .75); cape = mat('Cape', L['cape'], .85, cull=False); hair = mat('Hair', 0x4a3020, .9)
     eye = mat('Eye', 0x1d1a18, .4)
     body(L, dark, dark, leather, foot_mat=leather)
     eyes(eye, hair)
-    torso([(.215, 1.08), (.225, 1.2), (.25, 1.36), (.26, 1.5), (.255, 1.62), (.21, 1.73), (.13, 1.79)], steel, .74, 'plate')
-    for y in (1.1, 1.73):
-        part(lathe([(.232 if y < 1.5 else .215, y - .025), (.24 if y < 1.5 else .222, y), (.232 if y < 1.5 else .215, y + .025)], sz=.75, seg=24), trim,
-             ('auto', ['hips', 'spine', 'chest']), name='band')
-    part(cube((0, 1.5, .19), (.1, .18, .04)), trim, 'chest', smooth=False, name='emblem')
-    part(lathe([(.225, .96), (.235, 1.04), (.226, 1.1)], sz=.76, seg=24), leather, 'hips', name='belt')
-    part(cube((0, 1.03, .175), (.09, .08, .03)), trim, 'hips', smooth=False, name='buckle')
+    part(lathe([(.172, 1.13), (.176, 1.24), (.164, 1.36), (.18, 1.46), (.205, 1.58), (.214, 1.68), (.203, 1.75), (.152, 1.81), (.08, 1.845)], sz=.72, seg=26), steel,
+         ('auto', ['hips', 'spine', 'chest']), name='plate')
+    for (r, y) in ((.18, 1.17), (.212, 1.74)):
+        part(lathe([(r, y - .018), (r + .008, y), (r, y + .018)], sz=.73, seg=26), trim, ('auto', ['hips', 'spine', 'chest']), name='band')
+    part(lathe([(.2, 1.5), (.208, 1.52), (.2, 1.54)], sz=.73, seg=26), trim, ('auto', ['spine', 'chest']), name='band2')
+    part(lathe([(.172, 1.06), (.181, 1.11), (.173, 1.15)], sz=.75, seg=24), leather, 'hips', name='belt')
+    part(cube((0, 1.105, .132), (.07, .06, .02)), trim, 'hips', smooth=False, name='buckle')
     def skirt_w(v):
-        s = side_of(v); t = max(0., min(1., (1.0 - v[1]) / .3)) * .45
+        s = side_of(v); t = max(0., min(1., (1.08 - v[1]) / .28)) * .55
         return {'hips': 1 - t, 'thigh_' + s: t}
-    part(lathe([(.23, 1.0), (.26, .86), (.29, .7)], sz=.78, seg=24), steel, skirt_w, name='tassets')
+    for i in range(8):
+        a0 = i / 8 * TAU + .1; a1 = a0 + TAU / 8 - .12
+        part(lathe([(.18, 1.08), (.2, .96), (.215, .84)], sz=.8, seg=3, a0=a0, a1=a1), steel, skirt_w, name='tasset')
     for k in (1, -1):
         s = 'R' if k > 0 else 'L'
-        part(xf(lathe([(0, .1), (.1, .085), (.15, .04), (.16, 0), (.15, -.03)], sz=1.0, seg=16), rot=(0, 0, -.35 * k), t=(.36 * k, 1.69, 0)), steel,
-             ('auto', ['chest', 'upperarm_' + s]), name='pauldron')
-        part(xf(lathe([(.165, -.03), (.172, -.045), (.165, -.06)], seg=16), rot=(0, 0, -.35 * k), t=(.36 * k, 1.69, 0)), trim,
-             ('auto', ['chest', 'upperarm_' + s]), name='pauldron_rim')
-        part(tube([(.383 * k, 1.3, .005), (.392 * k, 1.21, .008), (.4 * k, 1.12, .01)], [.064, .066, .06], 12), steel,
-             ('auto', ['forearm_' + s, 'hand_' + s]), name='gauntlet')
-        part(tube([(.149 * k, .4, .0), (.15 * k, .24, -.005), (.15 * k, .12, -.01)], [.078, .074, .07], 12), leather,
-             ('auto', ['shin_' + s, 'foot_' + s]), name='boot')
-        part(lathe([(.08, .37), (.088, .4), (.08, .43)], c=(.149 * k, 0, .0), seg=12), trim, 'shin_' + s, name='cuff')
-        part(xf(lathe([(0, .05), (.06, .045), (.09, 0), (.06, -.04)], seg=12), t=(.145 * k, .56, .085)), steel, 'shin_' + s, name='knee')
-    # helmet
-    part(lathe([(0, 2.31), (.12, 2.29), (.2, 2.21), (.228, 2.1), (.228, 2.05)], sz=1.02, seg=24), steel, 'head', name='helm')
-    part(lathe([(.23, 2.03), (.238, 2.06), (.23, 2.09)], sz=1.02, seg=24), trim, 'head', name='helm_rim')
-    part(cube((0, 2.01, .215), (.04, .13, .035)), steel, 'head', smooth=False, name='nasal')
+        for j, (r, dy) in enumerate(((.115, 0), (.1, -.06), (.088, -.11))):
+            part(xf(lathe([(0, .07), (r * .7, .06), (r, .02), (r * 1.02, 0), (r, -.02)], sz=1.0, seg=16), rot=(0, 0, -.45 * k), t=(.235 * k + .015 * j * k, 1.775 + dy, 0)),
+                 steel if j == 0 else dark, ('auto', ['chest', 'upperarm_' + s]), name='pauldron')
+        part(xf(lathe([(.117, -.02), (.123, -.03), (.117, -.04)], seg=16), rot=(0, 0, -.45 * k), t=(.235 * k, 1.775, 0)), trim, ('auto', ['chest', 'upperarm_' + s]), name='rim')
+        part(tube([(.256 * k, 1.3, .0), (.264 * k, 1.21, .01), (.27 * k, 1.13, .02)], [.044, .046, .04], 12), steel, ('auto', ['forearm_' + s, 'hand_' + s]), name='vambrace')
+        part(tube([(.24 * k, 1.58, -.008), (.246 * k, 1.47, -.01)], [.056, .05], 12), steel, 'upperarm_' + s, name='rerebrace')
+        part(tube([(.113 * k, .42, 0), (.115 * k, .26, -.004), (.115 * k, .11, -.01)], [.058, .056, .05], 12), leather, ('auto', ['shin_' + s, 'foot_' + s]), name='boot')
+        part(ell((.115 * k, .05, .05), (.055, .055, .125), 12, 8), leather, ('auto', ['shin_' + s, 'foot_' + s]), name='bootfoot')
+        part(lathe([(.06, .41), (.066, .43), (.06, .45)], c=(.113 * k, 0, 0), seg=12), trim, 'shin_' + s, name='cuff')
+        part(xf(lathe([(0, .04), (.045, .034), (.064, 0), (.045, -.03)], seg=12), t=(.11 * k, .6, .055)), steel, 'shin_' + s, name='knee')
+        part(tube([(.105 * k, .98, .02), (.108 * k, .76, .03)], [.075, .062], 12), steel, 'thigh_' + s, name='cuisse')
+    part(lathe([(0, 2.225), (.07, 2.218), (.118, 2.17), (.135, 2.1), (.136, 2.04)], sz=1.08, seg=24), steel, 'head', name='helm')
+    part(lathe([(.138, 2.025), (.144, 2.04), (.138, 2.055)], sz=1.08, seg=24), trim, 'head', name='helm_rim')
+    part(lathe([(.006, .02), (.0, -.0)], c=(0, 2.22, 0), seg=4), trim, 'head', name='crest')
+    part(cube((0, 2.035, .143), (.022, .085, .02)), steel, 'head', smooth=False, name='nasal')
     for k in (1, -1):
-        part(cube((.195 * k, 1.97, .07), (.04, .16, .12), (0, .3 * k, 0)), steel, 'head', smooth=False, name='cheek')
-        part(tube([(.2 * k, 2.17, 0), (.31 * k, 2.21, .02), (.39 * k, 2.32, .04), (.42 * k, 2.46, .05)], [.052, .043, .028, .004], 10),
-             mat('Horn', 0xeee4cf, .5), 'head', name='horn')
-    part(ell((0, 1.9, .1), (.135, .1, .09), 14, 8), hair, 'head', name='beard')
-    # cape
-    V = []; F = []; cols, rows = 7, 9
+        part(cube((.118 * k, 1.985, .055), (.022, .11, .08), (0, .35 * k, 0)), steel, 'head', smooth=False, name='cheek')
+        part(tube([(.13 * k, 2.13, 0), (.19 * k, 2.16, .01), (.245 * k, 2.22, .02), (.265 * k, 2.31, .03)], [.03, .024, .015, .003], 10),
+             mat('Horn', 0xe3d8c0, .5), 'head', name='horn')
+    part(ell((0, 1.945, .075), (.082, .05, .058), 14, 8), hair, 'head', name='beard')
+    part(tube([(-.035, 1.99, .118), (0, 1.995, .124), (.035, 1.99, .118)], [.009, .011, .009], 6), hair, 'head', name='moustache')
+    V = []; F = []; cols, rows = 7, 10
     for i in range(rows):
         t = i / (rows - 1)
         for j in range(cols):
             u = j / (cols - 1) - .5
-            w = .56 + .2 * t
-            V.append((u * w, 1.74 - t * 1.05, -.23 - .07 * t - .03 * math.cos(u * math.pi) - .02 * math.sin(t * 3)))
+            w = .42 + .2 * t
+            V.append((u * w, 1.78 - t * 1.05, -.155 - .06 * t - .025 * math.cos(u * math.pi) - .015 * math.sin(t * 3 + u * 2)))
     for i in range(rows - 1):
         for j in range(cols - 1):
             a = i * cols + j
             F.append((a, a + 1, a + cols + 1, a + cols))
     def cape_w(v):
-        t = (1.74 - v[1]) / 1.05
-        if t < .35: return {'chest': 1.}
-        if t < .7: return {'chest': 1 - (t - .35) / .35 * .6, 'spine': (t - .35) / .35 * .6}
-        return {'spine': .5, 'hips': .5}
+        t = (1.78 - v[1]) / 1.05
+        if t < .3: return {'chest': 1.}
+        if t < .65: return {'chest': 1 - (t - .3) / .35 * .6, 'spine': (t - .3) / .35 * .6}
+        return {'spine': .45, 'hips': .55}
     part((V, F), cape, cape_w, name='cape')
-    part(lathe([(.21, 1.71), (.25, 1.76), (.21, 1.8)], sz=.7, seg=20, a0=math.pi * .55, a1=math.pi * 1.45), trim, 'chest', name='clasp')
+    for k in (1, -1):
+        part(ell((.17 * k, 1.765, -.05), (.03, .03, .02), 8, 6), trim, 'chest', name='clasp')
     # sword (grip at origin, blade along +z)
     metal = mat('Metal', 0xe3e9f0, .2, .9)
     wpart('W_main', tube([(0, 0, -.15), (0, 0, .15)], [.03, .03], 10), leather)
@@ -369,37 +382,41 @@ def build_warrior():
     return 'warrior'
 
 def build_mage():
-    L = dict(skin=0xe2b08c, main=0x2f4a8f, trim=0xd4b46a, dark=0x1f2440, glow=0x7fd8ff)
-    robe = mat('Main', L['main'], .8); trim = mat('Trim', L['trim'], .35, .75); dark = mat('Dark', L['dark'], .85)
-    beardm = mat('Hair', 0xdcd6cc, .9); eye = mat('Eye', 0x1d1a18, .4); wood = mat('Wood', 0x5b3b24, .8)
+    L = dict(skin=0xd9a587, main=0x2b4485, trim=0xc9a95c, dark=0x1c2039, glow=0x7fd8ff)
+    robe = mat('Main', L['main'], .85); trim = mat('Trim', L['trim'], .35, .75); dark = mat('Dark', L['dark'], .85)
+    beardm = mat('Hair', 0xd8d3c8, .95); eye = mat('Eye', 0x1d1a18, .4); wood = mat('Wood', 0x5b3b24, .8)
     glow = mat('Glow', L['glow'], .3, 0, L['glow'])
     body(L, robe, dark, mat('Skin', L['skin'], .62), foot_mat=dark)
     eyes(eye, beardm)
     def robe_w(v):
-        if v[1] > 1.15: return auto_weights([v], ['hips', 'spine', 'chest'])[0]
-        s = side_of(v); t = max(0., min(1., (1.05 - v[1]) / .8)) * .5 * min(1., abs(v[0]) / .12)
+        if v[1] > 1.2: return auto_weights([v], ['hips', 'spine', 'chest'])[0]
+        s = side_of(v); t = max(0., min(1., (1.12 - v[1]) / .85)) * .5 * min(1., abs(v[0]) / .09)
         return {'hips': 1 - t, 'thigh_' + s: t}
-    part(lathe([(.11, 1.8), (.2, 1.73), (.245, 1.6), (.235, 1.42), (.22, 1.2), (.245, 1.0), (.3, .76), (.37, .46), (.43, .17), (.455, .05)], sz=.84, seg=28),
+    part(lathe([(.08, 1.845), (.15, 1.8), (.198, 1.72), (.2, 1.56), (.168, 1.4), (.172, 1.22), (.212, .98), (.27, .66), (.325, .32), (.35, .05)], sz=.82, seg=30),
          robe, robe_w, name='robe')
-    part(lathe([(.452, .1), (.465, .07), (.458, .035), (.445, .05)], sz=.84, seg=28), trim, robe_w, name='hem')
-    part(lathe([(.23, 1.05), (.245, 1.1), (.23, 1.15)], sz=.85, seg=24), trim, 'hips', name='sash')
-    part(cube((0, 1.1, .2), (.07, .07, .03)), glow, 'hips', smooth=False, name='gem')
-    part(lathe([(.2, 1.78), (.3, 1.68), (.34, 1.55), (.33, 1.5)], sz=.82, seg=24), dark, mantle_w, name='mantle')
-    part(lathe([(.335, 1.505), (.345, 1.53), (.335, 1.555)], sz=.82, seg=24), trim, mantle_w, name='mantle_rim')
-    part(cube((0, 1.62, .2), (.06, .2, .03)), trim, 'chest', smooth=False, name='stole')
+    for i in range(6):
+        a = i / 6 * TAU + .3
+        part(tube([(math.sin(a) * .17, 1.15, math.cos(a) * .17 * .82), (math.sin(a) * .3, .5, math.cos(a) * .3 * .82), (math.sin(a) * .345, .07, math.cos(a) * .345 * .82)],
+                  [.006, .01, .012], 5), dark, robe_w, name='fold')
+    part(lathe([(.348, .09), (.36, .065), (.355, .03), (.343, .045)], sz=.82, seg=30), trim, robe_w, name='hem')
+    part(lathe([(.168, 1.25), (.178, 1.29), (.168, 1.33)], sz=.83, seg=24), trim, ('auto', ['hips', 'spine']), name='sash')
+    part(tube([(.06, 1.27, .14), (.08, 1.12, .155), (.09, .98, .16)], [.018, .016, .012], 6, flat=.4), trim, robe_w, name='sashtail')
+    part(xf(lathe([(0, .03), (.03, 0), (0, -.03)], seg=6), t=(0, 1.29, .147)), glow, 'spine', name='gem')
+    part(lathe([(.14, 1.82), (.22, 1.75), (.25, 1.64), (.245, 1.59)], sz=.82, seg=26), dark, mantle_w, name='mantle')
+    part(lathe([(.247, 1.595), (.255, 1.61), (.247, 1.625)], sz=.82, seg=26), trim, mantle_w, name='mantle_rim')
     for k in (1, -1):
         s = 'R' if k > 0 else 'L'
-        part(tube([(.37 * k, 1.42, 0), (.385 * k, 1.28, .005), (.4 * k, 1.17, .01), (.405 * k, 1.13, .012)], [.068, .075, .098, .108], 14, cap=False), robe,
+        part(tube([(.25 * k, 1.44, -.01), (.258 * k, 1.32, .0), (.266 * k, 1.19, .012), (.27 * k, 1.13, .02)], [.048, .054, .068, .076], 14, cap=False), robe,
              ('auto', ['upperarm_' + s, 'forearm_' + s]), name='sleeve')
-        part(lathe([(.105, -.02), (.112, 0), (.105, .02)], c=(.405 * k, 1.13, .012), seg=14), trim, 'forearm_' + s, name='cuff')
-    # hat: brim + bent cone
-    part(lathe([(0, 2.205), (.3, 2.2), (.46, 2.17), (.47, 2.155), (.3, 2.175), (0, 2.18)], seg=28), dark, 'head', name='brim')
-    part(tube([(0, 2.19, -.01), (-.01, 2.45, -.03), (-.04, 2.68, -.08), (-.1, 2.86, -.16), (-.18, 2.93, -.24)], [.25, .17, .1, .045, .004], 18), robe, 'head', name='hat')
-    part(lathe([(.245, 2.2), (.25, 2.24), (.235, 2.28)], seg=24), trim, 'head', name='hatband')
-    part(tube([(0, 1.98, .15), (0, 1.86, .19), (0, 1.73, .18), (0, 1.6, .14), (0, 1.52, .11)], [.105, .1, .075, .04, .002], 14, flat=.6), beardm,
+        part(lathe([(.074, -.012), (.08, 0), (.074, .012)], c=(.27 * k, 1.13, .02), seg=14), trim, 'forearm_' + s, name='cuff')
+    part(lathe([(0, 2.185), (.2, 2.18), (.305, 2.155), (.312, 2.142), (.2, 2.16), (0, 2.165)], seg=30), dark, 'head', name='brim')
+    part(tube([(0, 2.17, -.01), (-.005, 2.34, -.02), (-.025, 2.5, -.05), (-.07, 2.63, -.11), (-.13, 2.69, -.17)], [.135, .1, .062, .03, .003], 18), robe, 'head', name='hat')
+    part(lathe([(.134, 2.18), (.137, 2.205), (.128, 2.23)], seg=24), trim, 'head', name='hatband')
+    part(tube([(0, 1.965, .1), (0, 1.88, .122), (0, 1.79, .118), (0, 1.7, .096), (0, 1.63, .078)], [.068, .064, .048, .025, .002], 14, flat=.6), beardm,
          ('auto', ['head', 'neck']), name='beard')
     for k in (1, -1):
-        part(tube([(.0, 2.0, .2), (.07 * k, 1.985, .195), (.13 * k, 1.95, .17)], [.025, .022, .008], 8), beardm, 'head', name='moustache')
+        part(tube([(0, 1.995, .126), (.04 * k, 1.988, .122), (.075 * k, 1.965, .1)], [.012, .011, .004], 8), beardm, 'head', name='moustache')
+        part(ell((.07 * k, 2.1, -.02), (.04, .045, .07), 8, 6), beardm, 'head', name='sidehair')
     # staff (grip at origin, vertical)
     wpart('W_main', tube([(0, -.72, 0), (.01, -.2, .005), (-.008, .4, 0), (.01, 1.0, -.005), (0, 1.3, 0)], [.038, .042, .044, .048, .05], 10), wood)
     for y in (-.05, .1, 1.22):
@@ -429,36 +446,41 @@ def build_mage():
     return 'mage'
 
 def build_marksman():
-    L = dict(skin=0xd8a27e, main=0x3f6b35, trim=0x9c7a45, dark=0x2b2a22, glow=0xc8ff8a)
-    tunic = mat('Main', L['main'], .85); trim = mat('Trim', L['trim'], .7); dark = mat('Dark', L['dark'], .85)
-    cloak = mat('Cape', 0x2f5528, .9, cull=False); eye = mat('Eye', 0x1d1a18, .4); hair = mat('Hair', 0x6b4a2a, .9)
+    L = dict(skin=0xc99474, main=0x3a6332, trim=0x8c6b3c, dark=0x2a2922, glow=0xc8ff8a)
+    tunic = mat('Main', L['main'], .88); trim = mat('Trim', L['trim'], .75); dark = mat('Dark', L['dark'], .88)
+    cloak = mat('Cape', 0x2a4d25, .92, cull=False); eye = mat('Eye', 0x1d1a18, .4); hair = mat('Hair', 0x5a3c22, .9)
     glow = mat('Glow', L['glow'], .4, 0, L['glow'])
     body(L, tunic, dark, mat('Glove', 0x5a4128, .8), foot_mat=trim)
     eyes(eye, hair)
+    part(ell((0, 2.1, -.015), (.114, .1, .125), 14, 8), hair, 'head', name='hair')
     def tunic_w(v):
-        if v[1] > 1.0: return auto_weights([v], ['hips', 'spine', 'chest'])[0]
-        s = side_of(v); t = max(0., min(1., (1.0 - v[1]) / .25)) * .5
+        if v[1] > 1.12: return auto_weights([v], ['hips', 'spine', 'chest'])[0]
+        s = side_of(v); t = max(0., min(1., (1.1 - v[1]) / .22)) * .55
         return {'hips': 1 - t, 'thigh_' + s: t}
-    part(lathe([(.25, .76), (.235, .9), (.215, 1.1), (.228, 1.34), (.24, 1.5), (.235, 1.64), (.18, 1.74), (.1, 1.8)], sz=.72, seg=24), tunic, tunic_w, name='tunic')
-    part(lathe([(.225, .98), (.236, 1.04), (.226, 1.1)], sz=.74, seg=24), trim, 'hips', name='belt')
-    part(cube((.17, .98, .09), (.09, .1, .06), (0, .5, 0)), trim, 'hips', smooth=False, name='pouch')
-    part(tube([(-.2, 1.08, .14), (-.05, 1.3, .18), (.1, 1.52, .175), (.21, 1.7, .1)], [.022] * 4, 8, flat=.4), trim, ('auto', ['spine', 'chest']), name='strap')
-    # hood (open at the front) + mantle + mask
-    part(lathe([(0, 2.29), (.15, 2.27), (.235, 2.15), (.252, 2.0), (.245, 1.88), (.23, 1.8)], seg=24, a0=math.radians(48), a1=math.radians(312)), cloak, 'head', name='hood')
-    part(lathe([(.21, 1.84), (.31, 1.7), (.36, 1.5), (.37, 1.42)], sz=.85, seg=26), cloak, mantle_w, name='mantle')
-    part(lathe([(.203, 2.0), (.198, 1.93), (.16, 1.85)], seg=16, a0=math.radians(-75), a1=math.radians(75)), dark, 'head', name='mask')
+    part(lathe([(.19, .9), (.182, 1.02), (.168, 1.15), (.162, 1.3), (.17, 1.44), (.194, 1.58), (.2, 1.7), (.158, 1.79), (.08, 1.845)], sz=.72, seg=26), tunic, tunic_w, name='tunic')
+    part(lathe([(.17, 1.09), (.178, 1.13), (.17, 1.17)], sz=.74, seg=24), trim, 'hips', name='belt')
+    part(cube((.13, 1.08, .07), (.07, .085, .05), (0, .55, 0)), trim, 'hips', smooth=False, name='pouch')
+    part(cube((-.12, 1.07, .08), (.06, .07, .045), (0, -.55, 0)), trim, 'hips', smooth=False, name='pouch2')
+    part(tube([(-.16, 1.18, .1), (-.04, 1.38, .132), (.08, 1.58, .13), (.17, 1.76, .07)], [.016] * 4, 8, flat=.4), trim, ('auto', ['spine', 'chest']), name='strap')
+    part(lathe([(0, 2.235), (.1, 2.225), (.152, 2.15), (.162, 2.04), (.158, 1.93), (.15, 1.85)], seg=26, a0=math.radians(52), a1=math.radians(308)), cloak, 'head', name='hood')
+    part(tube([(0, 2.2, -.1), (0, 2.18, -.18), (0, 2.08, -.22)], [.07, .05, .02], 10), cloak, 'head', name='hoodtail')
+    part(lathe([(.15, 1.86), (.235, 1.77), (.265, 1.62), (.27, 1.55)], sz=.85, seg=28), cloak, mantle_w, name='mantle')
+    part(lathe([(.122, 2.005), (.118, 1.96), (.1, 1.9), (.085, 1.86)], seg=16, a0=math.radians(-80), a1=math.radians(80)), dark, 'head', name='mask')
     for k in (1, -1):
         s = 'R' if k > 0 else 'L'
-        part(tube([(.383 * k, 1.32, .005), (.392 * k, 1.22, .008), (.4 * k, 1.13, .01)], [.06, .062, .056], 12), trim, ('auto', ['forearm_' + s, 'hand_' + s]), name='bracer')
-        part(tube([(.149 * k, .42, .0), (.15 * k, .26, -.005), (.15 * k, .12, -.01)], [.076, .072, .068], 12), trim, ('auto', ['shin_' + s, 'foot_' + s]), name='boot')
-    # quiver on the back
-    qa, qb = Vector((.12, 1.12, -.25)), Vector((.26, 1.74, -.28))
-    part(tube([qa, qb], [.085, .095], 12), trim, 'chest', name='quiver')
+        part(tube([(.256 * k, 1.32, 0), (.264 * k, 1.22, .01), (.27 * k, 1.135, .02)], [.04, .042, .036], 12), trim, ('auto', ['forearm_' + s, 'hand_' + s]), name='bracer')
+        for y in (1.2, 1.26):
+            part(lathe([(.043, -.006), (.047, 0), (.043, .006)], c=(.264 * k, y, .01), seg=10), dark, 'forearm_' + s, name='lace')
+        part(tube([(.113 * k, .44, 0), (.115 * k, .27, -.004), (.115 * k, .11, -.01)], [.056, .053, .048], 12), trim, ('auto', ['shin_' + s, 'foot_' + s]), name='boot')
+        part(lathe([(.058, .43), (.07, .47), (.064, .5)], c=(.113 * k, 0, 0), seg=12), trim, 'shin_' + s, name='bootfold')
+    qa, qb = Vector((.08, 1.32, -.165)), Vector((.18, 1.86, -.195))
+    part(tube([qa, qb], [.062, .07], 12), trim, 'chest', name='quiver')
+    part(lathe([(.072, -.01), (.076, 0), (.072, .01)], c=tuple(qb - (qb - qa).normalized() * .03), seg=12), dark, 'chest', name='quiverrim')
     for i in range(5):
-        o = Vector(((i % 3 - 1) * .03, 0, (i // 3 - .5) * .035))
-        top = qb + (qb - qa).normalized() * .14 + o
-        part(tube([qb - (qb - qa).normalized() * .05 + o, top], [.008, .008], 5), mat('Shaft', 0x8a6a44, .7), 'chest', name='arrow')
-        part(xf(cube((0, 0, 0), (.05, .09, .005)), rot=(0, i * .6, .25), t=tuple(top)), glow, 'chest', smooth=False, name='fletch')
+        o = Vector(((i % 3 - 1) * .022, 0, (i // 3 - .5) * .026))
+        top = qb + (qb - qa).normalized() * .13 + o
+        part(tube([qb - (qb - qa).normalized() * .05 + o, top], [.006, .006], 5), mat('Shaft', 0x8a6a44, .7), 'chest', name='arrow')
+        part(xf(cube((0, 0, 0), (.035, .07, .004)), rot=(0, i * .6, .25), t=tuple(top)), glow, 'chest', smooth=False, name='fletch')
     # recurve bow (left hand): tips at y = +-0.64, belly bulges forward (+z)
     pts = []; rad = []
     for i in range(23):
@@ -487,32 +509,36 @@ def build_marksman():
     return 'marksman'
 
 def build_assassin():
-    L = dict(skin=0xc99372, main=0x3a2a4f, trim=0x9c6be0, dark=0x1d1824, glow=0xd59bff)
-    suit = mat('Main', L['main'], .8); trim = mat('Trim', L['trim'], .45, .4); dark = mat('Dark', L['dark'], .85)
-    glow = mat('Glow', L['glow'], .3, 0, L['glow']); mask = mat('Mask', 0x1e1a24, .7)
+    L = dict(skin=0xb98468, main=0x35284a, trim=0x8c62cc, dark=0x1b1622, glow=0xd59bff)
+    suit = mat('Main', L['main'], .82); trim = mat('Trim', L['trim'], .5, .35); dark = mat('Dark', L['dark'], .88)
+    glow = mat('Glow', L['glow'], .3, 0, L['glow']); mask = mat('Mask', 0x1c1822, .75)
     body(L, suit, dark, dark, foot_mat=dark, head_mat=mask, ears=False)
-    eyes(glow, None, 2.055, .175)
-    part(lathe([(.21, .9), (.2, 1.1), (.215, 1.34), (.232, 1.5), (.228, 1.64), (.17, 1.74), (.09, 1.8)], sz=.7, seg=24), suit, ('auto', ['hips', 'spine', 'chest']), name='suit')
-    for y in (1.0, 1.1, 1.2):
-        part(lathe([(.205 + (y - 1) * .05, y - .02), (.215 + (y - 1) * .05, y), (.205 + (y - 1) * .05, y + .02)], sz=.72, seg=24), dark, ('auto', ['hips', 'spine']), name='wrap')
-    part(cube((-.17, 1.02, .1), (.08, .09, .05), (0, -.5, 0)), trim, 'hips', smooth=False, name='pouch')
-    part(cube((.2, 1.0, .03), (.04, .16, .06)), dark, 'hips', smooth=False, name='sheath')
-    # hood with a swept-back point
-    part(lathe([(0, 2.3), (.16, 2.28), (.24, 2.15), (.255, 2.0), (.25, 1.88), (.23, 1.8)], seg=24, a0=math.radians(42), a1=math.radians(318)), suit, 'head', name='hood')
-    part(tube([(0, 2.25, -.1), (0, 2.27, -.22), (0, 2.22, -.34), (0, 2.12, -.42)], [.12, .08, .04, .004], 12), suit, 'head', name='hoodtip')
-    part(lathe([(.2, 1.86), (.28, 1.76), (.3, 1.7)], sz=.85, seg=24), suit, ('auto', ['chest', 'neck']), name='cowl')
-    # scarf + trailing tail
-    part(lathe([(.11, 1.76), (.15, 1.8), (.13, 1.87), (.1, 1.9)], seg=20), trim, ('auto', ['neck', 'chest']), name='scarf')
-    part(tube([(.04, 1.82, -.12), (.1, 1.72, -.26), (.15, 1.55, -.33), (.18, 1.35, -.37), (.2, 1.18, -.38)], [.06, .055, .05, .04, .02], 10, flat=.35), trim,
+    eyes(glow, None, 2.066, .108)
+    part(lathe([(.17, .98), (.16, 1.12), (.152, 1.3), (.162, 1.44), (.186, 1.58), (.19, 1.7), (.15, 1.79), (.07, 1.845)], sz=.7, seg=26), suit, ('auto', ['hips', 'spine', 'chest']), name='suit')
+    for y in (1.18, 1.25, 1.32):
+        r = .152 + (y - 1.18) * .02
+        part(lathe([(r, y - .016), (r + .008, y), (r, y + .016)], sz=.72, seg=24), dark, ('auto', ['hips', 'spine']), name='wrap')
+    part(cube((-.13, 1.1, .07), (.06, .07, .04), (0, -.55, 0)), trim, 'hips', smooth=False, name='pouch')
+    part(cube((.15, 1.06, .02), (.032, .14, .05), (0, 0, .15)), dark, 'hips', smooth=False, name='sheath')
+    def flap_w(v):
+        s = side_of(v); t = max(0., min(1., (1.08 - v[1]) / .25)) * .5
+        return {'hips': 1 - t, 'thigh_' + s: t}
+    for a0 in (math.radians(-35), math.radians(145)):
+        part(lathe([(.165, 1.12), (.18, .98), (.19, .8)], sz=.8, seg=4, a0=a0, a1=a0 + math.radians(70)), suit, flap_w, name='flap')
+    part(lathe([(0, 2.24), (.1, 2.23), (.155, 2.15), (.165, 2.04), (.16, 1.93), (.15, 1.85)], seg=26, a0=math.radians(46), a1=math.radians(314)), suit, 'head', name='hood')
+    part(tube([(0, 2.2, -.08), (0, 2.22, -.17), (0, 2.17, -.26), (0, 2.08, -.32)], [.08, .055, .028, .003], 12), suit, 'head', name='hoodtip')
+    part(lathe([(.14, 1.88), (.2, 1.8), (.225, 1.74)], sz=.85, seg=26), suit, ('auto', ['chest', 'neck']), name='cowl')
+    part(lathe([(.07, 1.78), (.098, 1.81), (.088, 1.87), (.07, 1.9)], seg=20), trim, ('auto', ['neck', 'chest']), name='scarf')
+    part(tube([(.03, 1.84, -.08), (.07, 1.74, -.18), (.1, 1.58, -.23), (.12, 1.4, -.26), (.135, 1.24, -.27)], [.04, .037, .033, .027, .014], 10, flat=.32), trim,
          ('auto', ['chest', 'spine']), name='tail')
     for k in (1, -1):
         s = 'R' if k > 0 else 'L'
-        part(xf(lathe([(0, .14), (.045, 0)], seg=6), rot=(0, 0, -.6 * k), t=(.36 * k, 1.75, 0)), trim, 'upperarm_' + s, name='spike')
-        part(xf(lathe([(0, .1), (.035, 0)], seg=6), rot=(0, 0, -.9 * k), t=(.3 * k, 1.77, -.06)), trim, 'upperarm_' + s, name='spike2')
-        for y in (1.18, 1.26):
-            part(lathe([(.055, -.015), (.062, 0), (.055, .015)], c=(.393 * k, y, .007), seg=12), dark, 'forearm_' + s, name='band')
-        for y in (.3, .4):
-            part(lathe([(.075, -.015), (.082, 0), (.075, .015)], c=(.149 * k, y, 0), seg=12), trim, 'shin_' + s, name='legwrap')
+        part(xf(lathe([(0, .1), (.03, 0)], seg=6), rot=(0, 0, -.6 * k), t=(.24 * k, 1.8, 0)), trim, 'upperarm_' + s, name='spike')
+        part(xf(lathe([(0, .07), (.024, 0)], seg=6), rot=(0, 0, -.9 * k), t=(.2 * k, 1.81, -.045)), trim, 'upperarm_' + s, name='spike2')
+        for y in (1.19, 1.26, 1.33):
+            part(lathe([(.04, -.01), (.045, 0), (.04, .01)], c=(.262 * k, y, .008), seg=12), dark, 'forearm_' + s, name='band')
+        for y in (.3, .38, .46):
+            part(lathe([(.052, -.01), (.058, 0), (.052, .01)], c=(.114 * k, y, 0), seg=12), trim, 'shin_' + s, name='legwrap')
     # curved daggers
     steel = mat('Metal', 0xdde3ee, .2, .85)
     for g in ('W_main', 'W_off'):
