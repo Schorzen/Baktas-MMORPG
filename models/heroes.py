@@ -4,7 +4,7 @@ to Blender (x, -z, y) so the glTF exporter's Y-up conversion lands it back in ga
 import bpy, bmesh, math, sys, os
 from mathutils import Vector, Matrix, Euler
 
-OUT = sys.argv[sys.argv.index('--') + 1] if '--' in sys.argv else '/tmp/claude-0/glb'
+OUT = sys.argv[sys.argv.index('--') + 1] if '--' in sys.argv and len(sys.argv) > sys.argv.index('--') + 1 else '/tmp/claude-0/glb'
 os.makedirs(OUT, exist_ok=True)
 TAU = math.pi * 2
 
@@ -536,7 +536,8 @@ def build(fn):
     tris = sum(len(p.vertices) - 2 for o in bpy.data.objects if o.type == 'MESH' for p in o.data.polygons)
     print('BUILT', key, os.path.getsize(path), 'bytes', tris, 'tris')
 
-which = sys.argv[sys.argv.index('--') + 2:] if '--' in sys.argv else []
-for fn in (build_warrior, build_mage, build_marksman, build_assassin):
-    if not which or fn.__name__[6:] in which:
-        build(fn)
+if __name__ == '__main__':
+    which = sys.argv[sys.argv.index('--') + 2:] if '--' in sys.argv else []
+    for fn in (build_warrior, build_mage, build_marksman, build_assassin):
+        if not which or fn.__name__[6:] in which:
+            build(fn)

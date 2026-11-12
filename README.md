@@ -17,12 +17,14 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 - Tap an enemy: target and auto-attack
 - Skill buttons (bottom right): use skills
 
-## Hero models
-The four heroes are built in Blender from `models/heroes.py` (smooth meshes, a 20-bone skeleton, outfits and weapons) and exported as rigged `.glb` files in `models/`. They are embedded in `index.html`, so the game is still a single file. To rebuild after editing the script:
+## Models
+The four heroes are built in Blender from `models/heroes.py` and the monsters (slime, wolf, rune golem, Ancient Warden) from `models/mobs.py`.
+Heroes are (smooth meshes, a 20-bone skeleton, outfits and weapons) and exported as rigged `.glb` files in `models/`. They are embedded in `index.html`, so the game is still a single file. To rebuild after editing the script:
 
 ```
 pip install bpy
 python models/heroes.py -- models
+python models/mobs.py -- models
 ```
 
 ## Features
