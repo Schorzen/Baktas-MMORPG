@@ -17,6 +17,14 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 - Tap an enemy: target and auto-attack
 - Skill buttons (bottom right): use skills
 
+## Hero models
+The four heroes are built in Blender from `models/heroes.py` (smooth meshes, a 20-bone skeleton, outfits and weapons) and exported as rigged `.glb` files in `models/`. They are embedded in `index.html`, so the game is still a single file. To rebuild after editing the script:
+
+```
+pip install bpy
+python models/heroes.py -- models
+```
+
 ## Features
 - **Quests:** Elder Maren by the town crystal gives a five-part quest chain that ends with the Ancient Warden.
 - **Loot and gear:** monsters drop weapons, armor and trinkets in five rarities (Common to Legendary). Open the bag to compare, equip or sell. Better weapons glow in their rarity colour.
