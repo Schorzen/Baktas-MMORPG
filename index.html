@@ -476,7 +476,7 @@ function buildHero(key,over){
   head.add(box(.42,.42,.42,key==='assassin'?M(0x1e1a24):skin));
   const eyeM=key==='assassin'?glow:M(0x1d1a18);
   head.add(box(.08,.07,.02,eyeM,-.1,.03,.215));head.add(box(.08,.07,.02,eyeM,.1,.03,.215));
-  const mkArm=x=>{const p=new THREE.Group();p.position.set(x,1.76,0);p.add(box(.2,.36,.22,main,0,-.16,0));
+  const mkArm=x=>{const p=new THREE.Group();p.rotation.order='YXZ';p.position.set(x,1.76,0);p.add(box(.2,.36,.22,main,0,-.16,0));
     const e=new THREE.Group();e.position.y=-.32;p.add(e);e.add(box(.19,.3,.21,main,0,-.14,0));
     e.add(box(.19,.16,.21,key==='assassin'?dark:skin,0,-.34,0));const h=new THREE.Group();h.position.y=-.36;e.add(h);
     p.userData.hand=h;p.userData.elbow=e;body.add(p);return p;};
@@ -556,6 +556,19 @@ function animateHero(obj,key,t,move,atk){
   r.body.rotation.x=.22*m;r.body.rotation.y=sn*.12*m;
   r.body.position.y=Math.abs(sn)*.14*m+br*.015*idle;
   r.head.rotation.x=-.18*m;r.head.rotation.y=Math.sin(t*.7)*.12*idle-sn*.1*m;
+  r.armL.rotation.y=0;r.armR.rotation.y=0;
+  const sw=obj.userData.swing;
+  if(key==='assassin'&&sw){
+    const k=sw.k,amt=Math.sin(Math.min(1,k/.9)*Math.PI);
+    const ph2=k<.25?-(k/.25):k<.55?-1+2*Math.pow((k-.25)/.3,.55):1-(k-.55)/.45*.7;
+    const wf=clamp(-ph2,0,1),sf=clamp(ph2,0,1);
+    if(sw.kind==='R'){r.armR.rotation.x=-1.45*amt;r.armR.rotation.y=-ph2*1.0*amt;r.elbowR.rotation.x=-(.15+.95*wf)*amt;
+      r.armL.rotation.x=-.7*amt;r.elbowL.rotation.x=-1.3*amt;r.body.rotation.y+=-ph2*.38*amt;}
+    else if(sw.kind==='L'){r.armL.rotation.x=-1.45*amt;r.armL.rotation.y=ph2*1.0*amt;r.elbowL.rotation.x=-(.15+.95*wf)*amt;
+      r.armR.rotation.x=-.7*amt;r.elbowR.rotation.x=-1.3*amt;r.body.rotation.y+=ph2*.38*amt;}
+    else{const x=-(.4+2.3*wf+.2*sf)*amt;r.armL.rotation.x=x;r.armR.rotation.x=x;r.armR.rotation.y=-.75*sf*amt;r.armL.rotation.y=.75*sf*amt;
+      r.elbowL.rotation.x=r.elbowR.rotation.x=-.2*amt;r.body.position.y+=.18*amt;r.body.rotation.x+=.28*sf*amt-.12*wf*amt;}
+  }
   if(obj.userData.orb)obj.userData.orb.rotation.y=t*2;
 }
 function buildSlime(def,big){
@@ -738,6 +751,7 @@ function sfx(n){
     case 'loot':tone({f:988,dur:.18,vol:.1,type:'triangle'});tone({f:1480,dur:.3,vol:.1,type:'triangle',when:.08,verb:1});break;
     case 'epic':[784,988,1175,1568].forEach((f,i)=>tone({f,dur:.5,vol:.1,type:'triangle',when:i*.06,verb:1}));break;
     case 'quest':[392,523,659,784].forEach((f,i)=>tone({f,dur:.5,vol:.1,type:'sine',when:i*.11,verb:1}));tone({f:1047,dur:.9,vol:.08,type:'triangle',when:.44,verb:1});break;
+    case 'slice':noise({f:5200,f2:1600,dur:.11,vol:.3,ft:'highpass',q:.7});tone({f:2700,f2:1900,type:'triangle',dur:.07,vol:.05});break;
     case 'step':noise({f:220,f2:90,dur:.08,vol:.07,ft:'lowpass'});break;
     case 'click':tone({f:1200,f2:900,dur:.05,vol:.06,type:'triangle'});break;
     case 'coin':tone({f:1760,dur:.08,vol:.07,type:'square'});tone({f:2637,dur:.15,vol:.06,type:'square',when:.06});break;
@@ -1039,6 +1053,7 @@ function dmgMob(m,base,o){
   if(o.stun)m.stunT=o.stun;if(o.slow)m.slowT=o.slow;
   m.obj.traverse(c=>{if(c.isMesh&&c.material.emissive){c.userData.fl=c.userData.fl||c.material.emissive.getHex();}});m.flash=.12;
   if(m.hp<=0)killMob(m);
+  return crit;
 }
 function killMob(m){
   m.dead=true;m.deadT=m.def.boss?40:12;m.hp=0;burst(m.obj.position,0xffffff,14,5,1);
@@ -1083,12 +1098,12 @@ function castSkill(i,auto){
     const td=dist2(P.pos,tg.obj.position);
     if(td>sk.range){if(sk.dash&&td<=sk.dash&&P.dashCd<=0&&(!auto||P.engage))dashTo=true;else{P.pending=i;P.engage=true;return false;}}
   }
-  P.mp-=sk.mana;P.cds[i]=sk.cd;P.atkT=.35;
+  P.mp-=sk.mana;P.cds[i]=sk.cd;P.atkT=.35;P.swing=null;
   P.skEls[i].classList.remove('flash');void P.skEls[i].offsetWidth;P.skEls[i].classList.add('flash');
   if(tg&&sk.type!=='roll'&&sk.type!=='blink')faceTo(P.obj,tg.obj.position);
   const D=()=>rand(sk.dmg[0],sk.dmg[1]);const fwd=new THREE.Vector3(Math.sin(P.obj.rotation.y),0,Math.cos(P.obj.rotation.y));
   switch(sk.type){
-    case 'melee':if(dashTo)shadowDash(tg,sk);sfx('swing');slashFx(P.obj,sk.color);dmgMob(tg,D()*(dashTo?sk.dashMul:1),{player:1,crit:sk.crit});burst(tg.obj.position,sk.color,6,4,tg.def.h*.5);break;
+    case 'melee':if(dashTo)shadowDash(tg,sk);if(P.key==='assassin'){assassinStrike(tg,sk,dashTo,D);break;}sfx('swing');slashFx(P.obj,sk.color);dmgMob(tg,D(),{player:1,crit:sk.crit});burst(tg.obj.position,sk.color,6,4,tg.def.h*.5);break;
     case 'proj':sfx(sk.arrow?'arrow':'fire');shoot(P.pos,tg,null,sk,'p');break;
     case 'nova':sfx(sk.slow?'frost':'nova');ringFx(P.pos,sk.color,sk.radius,.45);slashFx(P.obj,sk.color,true);burst(P.pos,sk.color,18,7,1);
       mobs.forEach(m=>{if(!m.dead&&dist2(m.obj.position,P.pos)<sk.radius+.5*m.obj.scale.x)dmgMob(m,D(),{player:1,slow:sk.slow});});break;
@@ -1112,6 +1127,33 @@ function castSkill(i,auto){
   }
   if(sk.type!=='stealth'&&sk.type!=='buff'&&sk.type!=='roll'&&sk.type!=='blink'&&P.buffs.stealth>0&&sk.type!=='step'&&sk.type!=='melee'){/* ranged skills keep stealth until hit lands */}
   return true;
+}
+function daggerTrail(kind,color,dur){
+  const g=new THREE.Group();g.position.set(P.pos.x,1.25,P.pos.z);g.rotation.y=P.obj.rotation.y;
+  const arcs=kind==='X'?[.75,-.75]:[kind==='R'?-.28:.28];
+  arcs.forEach((tilt,ai)=>{const piv=new THREE.Group();piv.rotation.z=tilt;g.add(piv);
+    const mk=(ri,ro,c,op)=>{const geo=new THREE.RingGeometry(ri,ro,30,1,-Math.PI/2-1.25,2.5);const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:op,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));
+      m.rotation.x=-Math.PI/2;if(kind==='R'||(kind==='X'&&ai===0))m.scale.x=-1;m.userData.op=op;piv.add(m);return m;};
+    mk(.95,1.72,color,.5);mk(1.6,1.76,0xffffff,.95);mk(1.25,1.62,color,.35);});
+  addFx(g,dur,(o,k)=>{const f=clamp((k-.2)/.35,0,1),op=k<.55?1:1-(k-.55)/.45;
+    o.traverse(m=>{if(m.isMesh){m.geometry.setDrawRange(0,Math.max(6,Math.floor(f*30)*6));m.material.opacity=m.userData.op*op;}});o.scale.setScalar(1+k*.15);});
+}
+function hitSpark(m,crit,color){
+  const g=new THREE.Group();g.position.copy(m.obj.position);g.position.y+=m.def.h*m.obj.scale.y*.5;g.lookAt(camera.position);
+  const mat=new THREE.MeshBasicMaterial({color:crit?0xffd166:color,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  [.8,-.8].forEach(a=>{const b=new THREE.Mesh(new THREE.PlaneGeometry(crit?2.2:1.5,.1),mat);b.rotation.z=a;g.add(b);});
+  const core=new THREE.Mesh(new THREE.PlaneGeometry(.5,.5),mat);core.rotation.z=.78;g.add(core);
+  addFx(g,crit?.26:.18,(o,k)=>{o.scale.setScalar(.4+k*(crit?1.4:1));mat.opacity=1-k;});
+  if(crit)ringFx(m.obj.position,0xffd166,2.2,.3);
+  cam.shake=Math.max(cam.shake||0,crit?.22:.1);
+}
+function assassinStrike(tg,sk,dashTo,D){
+  if(P.t-(P.lastSwing||-9)>1.6)P.combo=0;
+  const kind=['R','L','X'][P.combo||0];P.combo=((P.combo||0)+1)%3;P.lastSwing=P.t;
+  const dur=kind==='X'?.42:.3;P.swing={kind,dur};P.atkT=dur;
+  daggerTrail(kind,sk.color,dur);sfx('slice');if(kind==='X')setTimeout(()=>sfx('slice'),60);
+  const mul=(dashTo?sk.dashMul:1)*(kind==='X'?1.25:.95);
+  setTimeout(()=>{if(!P||tg.dead)return;const crit=dmgMob(tg,D()*mul,{player:1,crit:sk.crit});hitSpark(tg,crit,sk.color);burst(tg.obj.position,sk.color,kind==='X'?12:6,4,tg.def.h*.5);},dur*1000*(dashTo?.3:.42));
 }
 function shadowDash(tg,sk){
   const from=P.pos.clone(),dir=tg.obj.position.clone().sub(from).setY(0),len=dir.length();dir.normalize();
@@ -1213,7 +1255,8 @@ function updatePlayer(dt){
         if(P.pending!=null){if(P.cds[want]<=0&&P.mp>=sk.mana){P.pending=null;castSkill(want,true);}else if(P.cds[want]>0||P.mp<sk.mana)P.pending=null;}
         else if(P.cds[0]<=0)castSkill(0,true);}}}
   clampWorld(P.pos);P.moving+=(moving-P.moving)*Math.min(1,dt*10);
-  animateHero(P.obj,P.key,P.t,P.moving,P.atkT>0?Math.sin((1-P.atkT/.35)*Math.PI):0);
+  P.obj.userData.swing=P.atkT>0&&P.swing?{kind:P.swing.kind,k:1-P.atkT/P.swing.dur}:null;
+  animateHero(P.obj,P.key,P.t,P.moving,P.atkT>0&&!P.swing?Math.sin((1-P.atkT/.35)*Math.PI):0);
   const stepS=Math.sign(Math.sin(P.t*RUN_FREQ));
   if(P.moving>.55&&!P.dash&&stepS!==P.stepS){const zr=Math.hypot(P.pos.x,P.pos.z);dust(P.pos,zr<13?0xb9aa8a:zr<46?0x8f9a6a:zr<76?0x6d6a78:0x8d877a);sfx('step');}
   P.stepS=stepS;
@@ -1289,6 +1332,7 @@ function updateCamera(dt){
   const tx=P.pos.x,ty=1.6,tz=P.pos.z,cp=Math.cos(cam.pitch);
   camera.position.set(tx+Math.sin(cam.yaw)*cam.dist*cp,ty+Math.sin(cam.pitch)*cam.dist,tz+Math.cos(cam.yaw)*cam.dist*cp);
   camera.lookAt(tx,ty,tz);
+  if(cam.shake>0){cam.shake=Math.max(0,cam.shake-dt*1.2);const a=cam.shake*.6;camera.position.x+=rand(-a,a);camera.position.y+=rand(-a,a);camera.position.z+=rand(-a,a);}
   sun.position.set(tx+sunOff.x,sunOff.y,tz+sunOff.z);sun.target.position.set(tx,0,tz);
 }
 const pv=new THREE.Vector3();
