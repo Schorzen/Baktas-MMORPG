@@ -342,6 +342,30 @@ def build_warrior():
     for a in range(8):
         ang = a / 8 * TAU
         wpart('W_off', shield(ell((math.sin(ang) * .33, .062, math.cos(ang) * .33), (.025, .02, .025), 8, 5)), metal)
+    # ---- tier 2: winged broadsword + spiked steel shield
+    silver = mat('Silver', 0xd8dde6, .25, .9); ruby = mat('Glow2', 0xff5a4a, .3, 0, 0xff4a3a)
+    wpart('W_main2', tube([(0, 0, -.17), (0, 0, .15)], [.032, .032], 10), leather)
+    wpart('W_main2', ell((0, 0, -.21), (.05, .05, .05), 10, 8), silver)
+    wpart('W_main2', tube([(-.3, .06, .1), (-.15, .0, .17), (0, 0, .18), (.15, 0, .17), (.3, .06, .1)], [.012, .03, .04, .03, .012], 8), silver)
+    wpart('W_main2', ell((0, 0, .19), (.045, .045, .03), 8, 6), ruby)
+    wpart('W_main2', blade([(.2, .09, .024, 0, 0), (.5, .085, .022, 0, 0), (1.25, .07, .02, 0, 0), (1.45, .05, .016, 0, 0), (1.58, 0, .004, 0, 0)]), metal, False)
+    wpart('W_main2', blade([(.22, .014, .026, 0, 0), (1.3, .01, .023, 0, 0), (1.45, 0, .018, 0, 0)]), ruby, False)
+    wpart('W_off2', shield(lathe([(0, .07), (.2, .065), (.36, .045), (.46, .015), (.47, -.01), (.45, -.03), (0, -.03)], seg=28)), silver)
+    wpart('W_off2', shield(lathe([(.45, .03), (.49, .005), (.48, -.025), (.44, -.01)], seg=28)), trim)
+    wpart('W_off2', shield(lathe([(0, .32), (.05, .14), (.12, .07), (.13, .05)], seg=10)), trim)
+    wpart('W_off2', shield(lathe([(.25, .068), (.28, .072), (.25, .076)], seg=24)), ruby)
+    # ---- tier 3: Warden greatsword + crystal kite shield
+    void = mat('Glow3', 0xd88bff, .3, 0, 0xc070ff); obsid = mat('Obsidian', 0x2a2438, .25, .6)
+    wpart('W_main3', tube([(0, 0, -.22), (0, 0, .15)], [.034, .034], 10), obsid)
+    wpart('W_main3', ell((0, 0, -.27), (.06, .06, .07), 8, 6), void)
+    for k in (1, -1):
+        wpart('W_main3', tube([(0, 0, .18), (.18 * k, .03, .14), (.32 * k, .1, .2), (.38 * k, .16, .3)], [.045, .035, .022, .004], 8), obsid)
+    wpart('W_main3', blade([(.2, .11, .03, 0, 0), (.55, .1, .028, 0, 0), (1.35, .085, .024, 0, 0), (1.62, .055, .018, 0, 0), (1.78, 0, .005, 0, 0)]), obsid, False)
+    wpart('W_main3', blade([(.24, .045, .034, 0, 0), (1.4, .035, .03, 0, 0), (1.66, 0, .02, 0, 0)]), void, False)
+    kite = lambda VF: xf(VF, rot=(0, 0, math.pi / 2), t=(-.13, .02, .06))
+    wpart('W_off3', kite(xf(lathe([(0, .07), (.2, .065), (.38, .045), (.47, .015), (.48, -.01), (0, -.03)], seg=4), s=(.85, 1, 1.45))), obsid)
+    wpart('W_off3', kite(xf(lathe([(0, .14), (.12, .1), (.2, .06)], seg=4), s=(.85, 1, 1.45))), void)
+    wpart('W_off3', kite(xf(lathe([(.46, .03), (.5, .0), (.46, -.03)], seg=4), s=(.85, 1, 1.45))), trim)
     return 'warrior'
 
 def build_mage():
@@ -384,6 +408,24 @@ def build_mage():
     wpart('W_main', tube(pts, [.03 if i not in (0, len(pts) - 1) else .012 for i in range(len(pts))], 8), trim)
     wpart('W_main', tube([(0, 1.3, 0), (0, 1.34, 0)], [.05, .06], 10), trim)
     wpart('W_mainOrb', ell((0, 1.48, 0), (.135, .135, .135), 16, 10), glow)
+    # ---- tier 2: forked silver staff with a floating ring
+    silver = mat('Silver', 0xd8dde6, .25, .9); ebony = mat('Ebony', 0x2c1f1a, .7)
+    wpart('W_main2', tube([(0, -.75, 0), (0, .3, 0), (0, 1.05, 0), (0, 1.22, 0)], [.036, .042, .046, .05], 10), ebony)
+    for k in (1, -1):
+        wpart('W_main2', tube([(0, 1.2, 0), (.12 * k, 1.32, 0), (.2 * k, 1.5, 0), (.14 * k, 1.68, 0), (.04 * k, 1.74, 0)], [.035, .03, .026, .02, .006], 8), silver)
+    ring = [(math.cos(a) * .27, 1.48, math.sin(a) * .27) for a in [TAU * i / 24 for i in range(25)]]
+    wpart('W_main2', tube(ring, [.014] * 25, 6, cap=False), silver)
+    for y in (-.1, .5, 1.1):
+        wpart('W_main2', lathe([(.05, y - .025), (.06, y), (.05, y + .025)], seg=12), silver)
+    # ---- tier 3: crystal staff with a crown of shards
+    crys = mat('Glow3', 0xb8f4ff, .2, 0, 0x8fe8ff); gold = mat('Gold', 0xe0b860, .3, .85)
+    wpart('W_main3', tube([(0, -.8, 0), (0, .4, 0), (0, 1.25, 0)], [.04, .046, .052], 10), gold)
+    for y in (-.4, .0, .4, .8):
+        wpart('W_main3', xf(lathe([(0, .14), (.05, .07), (0, 0)], seg=5), t=(0, y, 0)), crys)
+    for i in range(6):
+        a = TAU * i / 6
+        wpart('W_main3', xf(lathe([(0, .5), (.05, .16), (0, 0)], seg=5), rot=(math.sin(a) * .5, 0, -math.cos(a) * .5), t=(math.cos(a) * .12, 1.3, math.sin(a) * .12)), crys)
+    wpart('W_main3', lathe([(.07, 1.24), (.16, 1.3), (.07, 1.36)], seg=12), gold)
     return 'mage'
 
 def build_marksman():
@@ -427,6 +469,21 @@ def build_marksman():
     wpart('W_off', tube([(0, -.09, .2), (0, .09, .2)], [.05, .05], 10), dark)
     for sgn in (1, -1):
         wpart('W_off', ell((0, .64 * sgn, 0), (.022, .022, .022), 6, 4), trim)
+    # ---- tier 2: longbow with silver tips; tier 3: crystal-limbed bow (tips stay at y = +-0.64)
+    silver = mat('Silver', 0xd8dde6, .25, .9); dwood = mat('DarkWood', 0x3e2414, .6); crys = mat('Glow3', 0xb8ff9a, .2, 0, 0x9cff7a); gold = mat('Gold', 0xe0b860, .3, .85)
+    for tier, limbm, tipm in ((2, dwood, silver), (3, crys, gold)):
+        pts = []; rad = []
+        for i in range(23):
+            t = -1 + 2 * i / 22
+            z = (.24 if tier == 3 else .16) * (1 - t * t) - (.1 if tier == 3 else .04) * max(0., abs(t) - .7) / .3
+            pts.append((0, .64 * t, z)); rad.append((.05 if tier == 3 else .042) - .032 * abs(t) ** 1.3)
+        wpart('W_off%d' % tier, tube(pts, rad, 8, flat=.7), limbm)
+        wpart('W_off%d' % tier, tube([(0, -.1, pts[11][2]), (0, .1, pts[11][2])], [.052, .052], 10), dark if tier == 2 else gold)
+        for sgn in (1, -1):
+            wpart('W_off%d' % tier, xf(lathe([(0, .12), (.03, 0)], seg=5), rot=(0 if sgn > 0 else math.pi, 0, 0), t=(0, .62 * sgn, 0)), tipm)
+        if tier == 3:
+            for sgn in (1, -1):
+                wpart('W_off3', xf(lathe([(0, .22), (.04, .08), (0, 0)], seg=5), rot=(-.6 * sgn, 0, 0), t=(0, .3 * sgn, .2)), crys)
     return 'marksman'
 
 def build_assassin():
@@ -470,6 +527,27 @@ def build_assassin():
             wpart(g, tube([(.13 * k, 0, .07), (.15 * k, 0, .13)], [.012, .002], 6), trim)
         wpart(g, tube([(0, 0, -.12), (0, 0, .06)], [.034, .036], 10), dark)
         wpart(g, ell((0, 0, -.15), (.04, .04, .045), 8, 6), glow)
+    # ---- tier 2: serrated long daggers; tier 3: crystal fangs
+    blood = mat('Glow2', 0xff4a5a, .3, 0, 0xff3a4a); crys = mat('Glow3', 0xe0b0ff, .2, 0, 0xc890ff); gold = mat('Gold', 0xe0b860, .3, .85)
+    for g in ('W_main2', 'W_off2'):
+        st = []
+        for i in range(13):
+            t = i / 12
+            st.append((.1 + t * .82, (.062 * (1 - t ** 2) + .004) * (1.15 if i % 2 else .9), .015 * (1 - t) + .003, 0, .05 * t * t))
+        wpart(g, blade(st), steel, False)
+        wpart(g, blade([(.12, .007, .019, 0, 0), (.72, .004, .016, 0, .04)]), blood, False)
+        wpart(g, tube([(-.15, 0, .07), (0, 0, .08), (.15, 0, .07)], [.014, .022, .014], 8), dark)
+        wpart(g, tube([(0, 0, -.13), (0, 0, .06)], [.034, .036], 10), dark)
+        wpart(g, ell((0, 0, -.16), (.042, .042, .045), 8, 6), blood)
+    for g in ('W_main3', 'W_off3'):
+        st = []
+        for i in range(9):
+            t = i / 8
+            st.append((.1 + t * .78, .07 * (1 - t ** 1.8) + .005, .02 * (1 - t) + .004, 0, .09 * t * t))
+        wpart(g, blade(st), crys, False)
+        wpart(g, tube([(-.17, .02, .05), (-.06, 0, .08), (.06, 0, .08), (.17, .02, .05)], [.01, .022, .022, .01], 8), gold)
+        wpart(g, tube([(0, 0, -.13), (0, 0, .06)], [.034, .036], 10), mat('Obsidian', 0x2a2438, .25, .6))
+        wpart(g, xf(lathe([(0, .1), (.04, .04), (0, 0)], seg=5), rot=(math.pi / 2, 0, 0), t=(0, 0, -.13)), crys)
     return 'assassin'
 
 # ---------------------------------------------------------------- assembly + export

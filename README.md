@@ -18,13 +18,14 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 - Skill buttons (bottom right): use skills
 
 ## Models
-The four heroes are built in Blender from `models/heroes.py` and the monsters (slime, wolf, rune golem, Ancient Warden) from `models/mobs.py`.
+The four heroes are built in Blender from `models/heroes.py` the monsters (slime, wolf, rune golem, Ancient Warden) from `models/mobs.py`, and the world props (trees, rocks, cottages, lamps, crystal, runestones, crypt pillars, portal, chest) from `models/world.py`.
 Each script builds smooth meshes, a skeleton, outfits and weapons, and exports rigged `.glb` files into `models/`. The models are embedded in `index.html`, so the game is still a single file. To rebuild after editing the script:
 
 ```
 pip install bpy
 python models/heroes.py -- models
 python models/mobs.py -- models
+python models/world.py -- models
 ```
 
 ## Features
@@ -34,6 +35,12 @@ python models/mobs.py -- models
 - **Animations:** keyframed attacks for every skill, 3-hit combos for Warrior and Assassin, a real bow draw for the Marksman, staff casting for the Mage, class-specific idle and run styles, hit flinches, kneeling death and respawn, and a level-up pose. Monsters wind up before attacking (golems show a red warning zone), flinch when hit, and each type has its own death.
 - **Graphics:** shader sky with drifting clouds and sun glow, wind-swept grass and swaying trees, animated water ponds, textured ground, rim-lit characters, filmic color with bloom, zone fog (purple mist in Duskwood, dust in the Barrens), and trees that fade when they block your view. Tap **HQ/LQ** to switch quality; it drops to LQ by itself if the phone struggles.
 - **Saving:** progress saves automatically on the phone, one hero per class.
+
+## Sunken Crypt (dungeon)
+A portal arch in Duskwood leads to the Sunken Crypt: three waves (wolves, then wolves and golems, then the Crypt Warden). Clear it to open a treasure chest with gear and silver, then take the exit portal back. Recommended level 4+; repeat it as often as you like.
+
+## Visible gear
+Weapons change shape with the rarity you equip: Common/Uncommon use the base model, Rare/Epic switch to a tier 2 model, and Legendary to a tier 3 crystal model.
 
 ## World
 Emberhollow (town) → Mossmere Fields (Lv 1–2) → Duskwood (Lv 3–5) → Rune Barrens (Lv 6–10), with the Ancient Warden boss to the north.
