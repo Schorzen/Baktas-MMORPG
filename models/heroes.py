@@ -580,6 +580,43 @@ def build_assassin():
         wpart(g, xf(lathe([(0, .1), (.04, .04), (0, 0)], seg=5), rot=(math.pi / 2, 0, 0), t=(0, 0, -.13)), crys)
     return 'assassin'
 
+def armor_tiers():
+    """Extra armor pieces shown when rare/epic (tier 2) or legendary (tier 3) armor is equipped."""
+    for tier, pre in ((2, 'A2_'), (3, 'A3_')):
+        if tier == 2:
+            plate = mat('Armor2', 0xcfd6e0, .28, .85); edge = mat('Armor2Trim', 0xe0b860, .3, .85); gem = mat('Armor2Gem', 0x55a8ff, .3, 0, 0x3d8fff)
+            pr, spikes = .125, 0
+        else:
+            plate = mat('Armor3', 0x2a2438, .25, .7); edge = mat('Armor3Trim', 0xe0b860, .3, .85); gem = mat('Armor3Gem', 0xffae42, .3, 0, 0xff9a1f)
+            pr, spikes = .15, 3
+        cw = ('auto', ['spine', 'chest'])
+        part(lathe([(.215, 1.5), (.238, 1.6), (.24, 1.7), (.2, 1.775)], sz=.8, seg=14, a0=math.radians(-78), a1=math.radians(78)), plate, cw, name=pre + 'chest')
+        part(lathe([(.218, 1.49), (.228, 1.5), (.218, 1.51)], sz=.8, seg=14, a0=math.radians(-78), a1=math.radians(78)), edge, cw, name=pre + 'chestrim')
+        part(ell((0, 1.64, .19), (.04, .05, .02), 8, 6), gem, 'chest', name=pre + 'gem')
+        if tier == 3:
+            for k in (1, -1):
+                part(tube([(.03 * k, 1.66, .192), (.12 * k, 1.72, .17)], [.008, .008], 5), gem, 'chest', name=pre + 'rune')
+                part(tube([(.03 * k, 1.62, .192), (.11 * k, 1.56, .175)], [.008, .008], 5), gem, 'chest', name=pre + 'rune')
+            part(lathe([(.12, 1.8), (.175, 1.9), (.165, 1.95)], seg=12, a0=math.radians(95), a1=math.radians(265)), plate, 'chest', name=pre + 'collar')
+            part(lathe([(.168, 1.945), (.176, 1.955), (.168, 1.965)], seg=12, a0=math.radians(95), a1=math.radians(265)), edge, 'chest', name=pre + 'collarrim')
+        else:
+            part(lathe([(.1, 1.8), (.13, 1.84), (.11, 1.875)], seg=16), plate, ('auto', ['neck', 'chest']), name=pre + 'gorget')
+        part(cube((0, 1.11, .14), (.11, .09, .03)), plate, 'hips', smooth=False, name=pre + 'beltplate')
+        part(ell((0, 1.11, .158), (.022, .022, .012), 6, 4), gem, 'hips', name=pre + 'beltgem')
+        for k in (1, -1):
+            s = 'R' if k > 0 else 'L'
+            sw = ('auto', ['chest', 'upperarm_' + s])
+            T = dict(rot=(0, 0, -.5 * k), t=(.25 * k, 1.8, 0))
+            part(xf(lathe([(0, .085), (pr * .65, .07), (pr, .02), (pr * 1.03, -.01), (pr * .98, -.035)], seg=14), **T), plate, sw, name=pre + 'pauldron')
+            part(xf(lathe([(pr * 1.0, -.03), (pr * 1.06, -.04), (pr * 1.0, -.05)], seg=14), **T), edge, sw, name=pre + 'pauldronrim')
+            part(xf(lathe([(0, -.04), (pr * .8, -.06), (pr * .86, -.1), (pr * .8, -.13)], seg=14), rot=(0, 0, -.5 * k), t=(.27 * k, 1.78, 0)), plate, sw, name=pre + 'pauldron2')
+            for j in range(spikes):
+                part(xf(lathe([(0, .2 - j * .04), (.03, .04), (0, 0)], seg=5), rot=(-.5 + j * .5, 0, -.75 * k), t=((.3 + .02 * j) * k, 1.84, -.07 + j * .07)), gem, sw, name=pre + 'spike')
+            part(tube([(.255 * k, 1.31, 0), (.264 * k, 1.21, .01), (.27 * k, 1.14, .02)], [.05, .052, .046], 10), plate, ('auto', ['forearm_' + s, 'hand_' + s]), name=pre + 'bracer')
+            part(lathe([(.054, -.012), (.06, 0), (.054, .012)], c=(.258 * k, 1.29, .003), seg=10), edge, 'forearm_' + s, name=pre + 'bracerrim')
+            part(tube([(.112 * k, .46, .01), (.114 * k, .3, .0), (.115 * k, .16, -.008)], [.066, .064, .056], 10), plate, ('auto', ['shin_' + s, 'foot_' + s]), name=pre + 'greave')
+            part(xf(lathe([(0, .05), (.05, .04), (.07, 0), (.05, -.035)], seg=10), t=(.11 * k, .6, .06)), edge if tier == 2 else gem, 'shin_' + s, name=pre + 'knee')
+
 # ---------------------------------------------------------------- assembly + export
 def make_object(name, V, F, m, smooth):
     me = bpy.data.meshes.new(name)
@@ -600,6 +637,8 @@ def build(fn):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     MATS.clear(); PARTS.clear(); WEAPONS.clear()
     key = fn()
+    if key in ('warrior', 'mage', 'marksman', 'assassin'):
+        armor_tiers()
     # armature
     arm = bpy.data.armatures.new('Rig'); rig = bpy.data.objects.new('Rig', arm)
     bpy.context.collection.objects.link(rig)
@@ -621,12 +660,16 @@ def build(fn):
             best = min(range(len(orig)), key=lambda i: (orig[i] - v.co).length_squared) if vi >= len(orig) or (orig[vi] - v.co).length > 1e-5 else vi
             for b, w in W[best].items():
                 if w > .002: groups[b].add([vi], w, 'REPLACE')
-        obs.append(ob)
-    with bpy.context.temp_override(active_object=obs[0], selected_editable_objects=obs, selected_objects=obs):
-        bpy.ops.object.join()
-    hero = obs[0]; hero.name = 'Hero'
-    hero.parent = rig
-    mod = hero.modifiers.new('Armature', 'ARMATURE'); mod.object = rig
+        obs.append((name, ob))
+    sets = {}
+    for name, ob in obs:
+        sets.setdefault('Armor2' if name.startswith('A2_') else 'Armor3' if name.startswith('A3_') else 'Hero', []).append(ob)
+    for gname, lst in sets.items():
+        if len(lst) > 1:
+            with bpy.context.temp_override(active_object=lst[0], selected_editable_objects=lst, selected_objects=lst):
+                bpy.ops.object.join()
+        o = lst[0]; o.name = gname; o.parent = rig
+        mod = o.modifiers.new('Armature', 'ARMATURE'); mod.object = rig
     # weapons (unskinned, at origin)
     wobs = {}
     for (g, VF, m, smooth) in WEAPONS:

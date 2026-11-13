@@ -16,6 +16,8 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 - Drag the screen: look around · pinch: zoom
 - Tap an enemy: target and auto-attack
 - Skill buttons (bottom right): use skills
+- Target button: lock on to the nearest enemy · Heart button: drink a potion
+- Gear icon: settings (graphics, sound, music, camera speed, return to town)
 
 ## Models
 The four heroes are built in Blender from `models/heroes.py` the monsters (slime, wolf, rune golem, Ancient Warden) from `models/mobs.py`, and the world props (trees, rocks, cottages, lamps, crystal, runestones, crypt pillars, portal, chest) from `models/world.py`.
@@ -39,8 +41,17 @@ python models/world.py -- models
 ## Sunken Crypt (dungeon)
 A portal arch in Duskwood leads to the Sunken Crypt: three waves (wolves, then wolves and golems, then the Crypt Warden). Clear it to open a treasure chest with gear and silver, then take the exit portal back. Recommended level 4+; repeat it as often as you like.
 
+## Frostpeak and the Glacier Hollow
+A portal north-west of the Barrens leads up to Frostpeak (level 11-14): a snowy zone with frost wolves, ice golems, a frozen lake and falling snow. At its far end a second dungeon, the Glacier Hollow, has four waves and the Glacier King.
+
+## Shop and potions
+Trader Bram in Emberhollow sells gear for your level and health potions. Potions heal 40% (10 second cooldown) from the heart button; monsters sometimes drop them.
+
 ## Visible gear
-Weapons change shape with the rarity you equip: Common/Uncommon use the base model, Rare/Epic switch to a tier 2 model, and Legendary to a tier 3 crystal model.
+Weapons and armor change shape with the rarity you equip: Common/Uncommon use the base look, Rare/Epic add a tier 2 weapon model and steel shoulder, chest and leg plates, and Legendary gives crystal weapons and dark spiked armor.
+
+## Install on your phone
+Open the game in Chrome on Android, then use the menu and choose Add to Home screen (or the Install button in Settings). It opens full screen in landscape and still starts when you are offline.
 
 ## World
 Emberhollow (town) → Mossmere Fields (Lv 1–2) → Duskwood (Lv 3–5) → Rune Barrens (Lv 6–10), with the Ancient Warden boss to the north.
