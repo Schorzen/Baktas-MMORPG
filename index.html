@@ -15,7 +15,7 @@
 <title>Baktas MMORPG</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Marcellus+SC&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
 /* Layout: full-bleed 3D stage; HUD pinned to the four corners like a classic MMO, brass-on-slate chrome */
 :root{
@@ -302,6 +302,49 @@ body.touch #hint{bottom:auto;top:calc(var(--top) + 198px);white-space:normal;tex
 #potBtn .pc{position:absolute;right:-2px;bottom:-3px;min-width:18px;padding:1px 4px;border-radius:9px;background:#0d1417;border:1px solid var(--line);font:700 11px var(--f-num);color:var(--text)}
 #potBtn.cdn{filter:grayscale(.9) brightness(.6)}
 @media (max-width:700px) and (orientation:portrait){.slist{grid-template-columns:1fr}}
+/* ---- refined HUD skin: thin glass panels, line icons, quiet metal accents ---- */
+:root{--panel:rgba(9,12,14,.58);--panel-solid:#101518;--line:rgba(214,200,168,.28);--brass:#c2ad7c;--brass-2:#e6dcc0;--text:#e8e6df;--muted:#98a09c;
+  --f-display:'Cinzel','Marcellus SC',Georgia,'Times New Roman',serif}
+svg.ic{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block;width:56%;height:56%}
+.frame{border-radius:4px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(90deg,rgba(8,10,12,.74),rgba(8,10,12,.4));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.crest,#tframe .crest{background:#12171a;color:var(--c1,#e6dcc0);box-shadow:0 0 0 1px var(--brass),inset 0 0 12px rgba(0,0,0,.6)}
+.medal{background:#12171a;color:var(--c1);box-shadow:0 0 0 1px rgba(214,200,168,.45)}
+.fname{font:600 13px var(--f-body);letter-spacing:.04em}
+.lvl{color:var(--brass-2)}
+.bar{height:9px;border-radius:1px;background:rgba(0,0,0,.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.bar.hp i{background:linear-gradient(#b8463c,#7d2722)}.bar.mp i{background:linear-gradient(#3f79b8,#234f82)}
+.bar span{font-size:9px;letter-spacing:.08em}
+#minimap{box-shadow:0 0 0 1px rgba(214,200,168,.6),0 0 0 4px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.45)}
+#zone{font:600 10.5px var(--f-body);letter-spacing:.24em;text-transform:uppercase}
+.ib{border-radius:6px;background:rgba(9,12,14,.55);border:1px solid rgba(255,255,255,.14);color:var(--brass-2);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sk,.xb{background:radial-gradient(circle at 50% 40%,rgba(42,48,52,.72),rgba(8,10,12,.8));border:1px solid rgba(214,200,168,.62);
+  box-shadow:inset 0 0 0 3px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.35);color:#eae2cc;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.sk svg.ic{width:52%;height:52%;stroke-width:1.7}.xb svg.ic{width:54%;height:54%}.ib svg.ic{width:62%;height:62%}
+body.touch .sk[data-i="0"]{box-shadow:inset 0 0 0 4px rgba(0,0,0,.4),0 0 0 3px rgba(214,200,168,.14),0 2px 10px rgba(0,0,0,.4)}
+.sk .m{color:#8fb6de;font-size:9px}
+.sk .cd{background:conic-gradient(rgba(0,0,0,.72) calc(var(--p,0)*1turn),transparent 0);font:600 16px var(--f-num)}
+.sk.dashready{box-shadow:inset 0 0 0 3px rgba(0,0,0,.35),0 0 0 1.5px #b08be0,0 0 10px rgba(176,139,224,.45)}
+.sk.flash{animation:skflash2 .3s}@keyframes skflash2{50%{box-shadow:inset 0 0 0 3px rgba(0,0,0,.35),0 0 0 2px var(--brass-2)}}
+#potBtn{color:#d9695e}#potBtn .pc{border-radius:3px;background:rgba(9,12,14,.9)}
+#joy{background:radial-gradient(circle,rgba(255,255,255,.03),rgba(255,255,255,.01) 70%);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+#knob{width:46px;height:46px;margin:-23px 0 0 -23px;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.34),rgba(255,255,255,.12));border:1px solid rgba(255,255,255,.4);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.chip{font:600 12.5px var(--f-body);letter-spacing:.16em;text-transform:uppercase;border-radius:4px;border:1px solid rgba(214,200,168,.55);background:rgba(9,12,14,.74);color:var(--brass-2);
+  box-shadow:0 4px 14px rgba(0,0,0,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.chip.act{border-color:rgba(176,139,224,.7);color:#e2d6f5;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.btn{border-radius:4px;border:1px solid #cdb98a;background:linear-gradient(#cbb37c,#9a8250);color:#17130b;font:600 13px var(--f-body);letter-spacing:.14em;text-transform:uppercase;box-shadow:none}
+.btn.ghost{background:none;color:var(--brass-2);border-color:rgba(214,200,168,.45);font-size:12px}
+.srow .btn{font:600 13px var(--f-num);letter-spacing:.04em;text-transform:none}
+.sheet-in{border-radius:6px;background:rgba(14,18,21,.96);border:1px solid rgba(255,255,255,.1)}
+.slot,.cell,.srow,.card,.cg,.sklist li,.sklist .g,.enter input,.buff{border-radius:4px}
+.sklist .g{background:#12171a}
+.card b{font:500 15px var(--f-display);letter-spacing:.08em}
+#toast{text-shadow:0 2px 10px #000;letter-spacing:.16em;font-weight:500}
+#xpbar{height:calc(3px + env(safe-area-inset-bottom,0px))}#xpbar i{height:3px;background:linear-gradient(90deg,#6f5ab0,#b6a2ea)}
+#qtrack{border-left:1px solid var(--brass)}#qtrack b{font:600 12px var(--f-body);letter-spacing:.06em}
+.brand h1{font-weight:500;letter-spacing:.24em;text-shadow:none}
+.plate .qm{font-family:var(--f-display)}
+.buff{border-radius:2px;background:rgba(9,12,14,.6)}
+#death h2{font-weight:500}
 @media (prefers-reduced-motion:reduce){.dmg{animation-duration:.01s}.bar i,#xpbar i{transition:none}}
 </style>
 
@@ -354,7 +397,7 @@ body.touch #hint{bottom:auto;top:calc(var(--top) + 198px);white-space:normal;tex
   <div id="mapwrap"><canvas id="minimap" width="240" height="240"></canvas><div id="zone">Emberhollow</div><div id="coin">0 silver</div></div>
   <div id="chat"></div>
   <div id="qtrack" hidden><small>Quest</small><b id="qtTitle"></b><span id="qtProg"></span></div>
-  <div id="topbtns" class="pe"><button type="button" class="ib" id="bagBtn" aria-label="Inventory">&#9707;<i class="dot" hidden></i></button><button type="button" class="ib" id="setBtn" aria-label="Settings">&#9881;&#xFE0E;</button></div>
+  <div id="topbtns" class="pe"><button type="button" class="ib" id="bagBtn" aria-label="Inventory"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1.5 12h-15zM9 8V6a3 3 0 0 1 6 0v2"/></svg><i class="dot" hidden></i></button><button type="button" class="ib" id="setBtn" aria-label="Settings"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg></button></div>
   <button type="button" class="pe chip" id="talkBtn" hidden>Talk to Elder Maren</button>
   <button type="button" class="pe chip act" id="actBtn" hidden></button>
   <div id="hint"></div>
@@ -385,7 +428,7 @@ body.touch #hint{bottom:auto;top:calc(var(--top) + 198px);white-space:normal;tex
 <div id="settings" class="sheet" hidden><div class="sheet-in dlg">
   <header class="sh-head"><h3>Settings</h3><button type="button" class="btn ghost" id="setClose">Close</button></header>
   <div class="set-row"><span>Graphics<small>High adds bloom, full grass and sharp shadows</small></span><button type="button" class="ib gfx" id="gfxBtn" aria-label="Graphics quality">HQ</button></div>
-  <div class="set-row"><span>Sound effects</span><button type="button" class="ib" id="sndBtn" aria-label="Sound on">&#9835;</button></div>
+  <div class="set-row"><span>Sound effects</span><button type="button" class="ib gfx" id="sndBtn" aria-label="Sound on">ON</button></div>
   <div class="set-row"><span>Music</span><button type="button" class="ib gfx" id="musBtn" aria-label="Music">ON</button></div>
   <div class="set-row"><span>Camera speed</span><span class="seg" id="sensSeg"><button type="button" class="btn ghost" data-sens="0.6">Slow</button><button type="button" class="btn ghost" data-sens="1">Normal</button><button type="button" class="btn ghost" data-sens="1.5">Fast</button></span></div>
   <div class="set-row"><span>Show FPS<small>Frames per second, top of the screen</small></span><button type="button" class="ib gfx" id="fpsBtn" aria-label="Show FPS">OFF</button></div>
@@ -477,6 +520,33 @@ const CLASSES={
       {name:'Vanish',glyph:'◌',cd:15,mana:30,type:'stealth',dur:5,color:0x9c6be0,desc:'Drop all threat and turn invisible. Your next hit deals 250%.'}]}
 };
 const KEYS=['warrior','mage','marksman','assassin'];
+const ICONS={
+  sword:'M19 5L8.5 15.5M19 5l-3.2.6M19 5l-.6 3.2M6 13l5 5M7.6 16.4L5 19',
+  whirl:'M12 4a8 8 0 0 1 8 8M12 20a8 8 0 0 1-8-8M12 8a4 4 0 0 1 4 4M12 16a4 4 0 0 1-4-4M20 12l-2-2.2M20 12l1.8-2.4M4 12l2 2.2M4 12l-1.8 2.4',
+  charge:'M5 6l6 6-6 6M12 6l6 6-6 6',
+  shield:'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM12 9v6M9 12h6',
+  flame:'M12 3c1 3.2 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.2 2-4.2 0 2 .8 3 2 3 .2-3-1-5.4 1-8.8z',
+  frost:'M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M12 6l-2-2M12 6l2-2M12 18l-2 2M12 18l2 2',
+  meteor:'M10 14.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 1 0-9 0M4 4l6.5 6.5M9 3l3.5 5M3 9l5 3.5',
+  blink:'M13 3L6 13h5l-1 8 7-10h-5z',
+  spark:'M12 3l2 6.5 6.5 2.5-6.5 2.5-2 6.5-2-6.5L3.500 12 10 9.500z',
+  arrow:'M5 19L19 5M19 5h-6M19 5v6M5 19l1-4M5 19l4-1',
+  volley:'M4 13l7-7M11 6H7.500M11 6v3.500M8 19l8-8M16 11h-4M16 11v4M14 22l6-6M20 16h-3M20 16v3',
+  pierce:'M3 12h17M20 12l-4-4M20 12l-4 4M8 7v10M12 9v6',
+  roll:'M19 12a7 7 0 1 1-2.500-5.400M19 4v4h-4',
+  dagger:'M12 3l2.500 9h-5zM8 12h8M12 12v6M10.500 20h3',
+  moon:'M15 4a8 8 0 1 0 5 13A7 7 0 0 1 15 4z',
+  fan:'M12 20L5 8M12 20V5M12 20l7-12M3.800 6.400l2.400 3.200M10.500 3.500h3M20.200 6.400l-2.400 3.200',
+  eye:'M3 12s3.500-6 9-6 9 6 9 6-3.500 6-9 6-9-6-9-6zM12 9.500a2.500 2.500 0 1 0 0 5 2.500 2.500 0 0 0 0-5zM4 4l16 16',
+  lock:'M5 12a7 7 0 1 0 14 0 7 7 0 1 0-14 0M12 2v5M12 17v5M2 12h5M17 12h5',
+  potion:'M10 3h4M10.500 3v5L6 16a4 4 0 0 0 3.500 5h5A4 4 0 0 0 18 16l-4.500-8V3M7.500 14h9',
+  armor:'M8 4l4 2 4-2 4 3-2 4v9H6v-9L4 7zM10 13h4',
+  ring:'M12 9a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM9.500 5.500L12 3l2.500 2.500L12 9z',
+  crown:'M4 18h16l1-10-5 4-4-7-4 7-5-4zM4 21h16',
+  claw:'M7 4c-1 5-1 10 0 16M12 3c-1 6-1 12 0 18M17 4c1 5 1 10 0 16'};
+function icon(n){return `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n]}"/></svg>`;}
+{const CI={warrior:['sword',['sword','whirl','charge','shield']],mage:['spark',['flame','frost','meteor','blink']],marksman:['arrow',['arrow','volley','pierce','roll']],assassin:['dagger',['dagger','moon','fan','eye']]};
+  KEYS.forEach(k=>{CLASSES[k].glyph=icon(CI[k][0]);CLASSES[k].skills.forEach((sk,i)=>{sk.glyph=icon(CI[k][1][i]);});});}
 const MOBS={
   slime:{name:'Moss Slime',lvl:1,hp:60,dmg:[4,7],speed:3.2,range:1.7,aggro:8,rate:1.6,xp:22,h:1.4,silver:[1,4],build:buildSlime},
   wolf:{name:'Dusk Wolf',lvl:3,hp:120,dmg:[8,12],speed:6.2,range:2.2,aggro:12,rate:1.3,xp:50,h:1.7,silver:[3,8],build:buildWolf},
@@ -1414,7 +1484,7 @@ function musicStep(w,st){
   if(fight){if(st%2===0)tone({f:120,f2:42,dur:.28,vol:.22,when:w,dest:SFX.music});if(st%4===2)noise({f:7000,dur:.05,vol:.05,ft:'highpass',when:w,dest:SFX.music});}
 }
 function setSound(on){SFX.on=on;SAVE.pref('sound',on?'on':'off');if(SFX.master)SFX.master.gain.value=on?.7:0;
-  $('#sndBtn').classList.toggle('off',!on);$('#sndBtn').setAttribute('aria-label',on?'Sound on':'Sound off');if(on){audioInit();sfx('click');}}
+  $('#sndBtn').classList.toggle('off',!on);$('#sndBtn').textContent=on?'ON':'OFF';$('#sndBtn').setAttribute('aria-label',on?'Sound on':'Sound off');if(on){audioInit();sfx('click');}}
 
 /* ================= SELECT SCENE ================= */
 const sel={scene:new THREE.Scene(),cam:new THREE.PerspectiveCamera(36,W/H,.1,100),heroes:[],idx:0};
@@ -1537,9 +1607,9 @@ function enterWorld(){
   if(sv){P.lvl=sv.lvl||1;P.xp=sv.xp||0;P.silver=sv.silver||0;P.gear=Object.assign(P.gear,sv.gear||{});P.bag=sv.bag||[];P.q=sv.q||P.q;P.clears=sv.clears||0;if(sv.potions!=null)P.potions=sv.potions;if(P.q.state==='done'&&P.q.i<QUESTS.length)P.q.state='avail';}
   recalcStats();P.hp=P.maxHp;P.mp=P.maxMp;applyGearLook();setSheathed(obj,true);
   P.el=makePlate('me',`<b>${esc(name)}</b>`);
-  $('#pname').textContent=name;$('#pcrest').textContent=def.glyph;$('#pframe').style.cssText=`--c1:${def.c1};--c2:${def.c2}`;
+  $('#pname').textContent=name;$('#pcrest').innerHTML=def.glyph;$('#pframe').style.cssText=`--c1:${def.c1};--c2:${def.c2}`;
   $('#skills').innerHTML=def.skills.map((s,i)=>`<button type="button" class="sk" data-i="${i}" aria-label="${s.name}"><span class="k">${i+1}</span>${s.glyph}${s.mana?`<span class="m">${s.mana}</span>`:''}<span class="cd" hidden></span></button>`).join('');
-  $('#skills').insertAdjacentHTML('beforeend','<button type="button" class="xb" id="lockBtn" aria-label="Lock on to the nearest enemy">\u25CE</button><button type="button" class="xb" id="potBtn" aria-label="Drink a health potion">\u2665\uFE0E<span class="pc"></span></button>');
+  $('#skills').insertAdjacentHTML('beforeend','<button type="button" class="xb" id="lockBtn" aria-label="Lock on to the nearest enemy">'+icon('lock')+'</button><button type="button" class="xb" id="potBtn" aria-label="Drink a health potion">'+icon('potion')+'<span class="pc"></span></button>');
   P.skEls=[...document.querySelectorAll('.sk')];refreshPot();
   $('#select').hidden=true;$('#hud').hidden=false;plates.hidden=false;$('#joy').hidden=!TOUCH;
   $('#hint').textContent='Left stick to move · drag to look · tap an enemy or the lock button to attack · visit Elder Maren for quests';
@@ -1626,7 +1696,7 @@ const potPrice=()=>15+P.lvl*3,buyPrice=it=>itemValue(it)*3;
 function shopStock(){if(!P.shop||P.shop.lvl!==P.lvl){P.shop={lvl:P.lvl,items:[]};[['weapon',1],['armor',1],['trinket',1],['weapon',2],['armor',2],['trinket',2]].forEach(([sl,r])=>P.shop.items.push(genItem(P.lvl+1,r,sl)));}return P.shop.items;}
 function renderShop(){
   $('#shopSilver').textContent=P.silver+' silver';const pp=potPrice();
-  let h=`<div class="srow"><span class="cg" style="color:#ff7a6b">\u2665\uFE0E</span><div class="sinfo"><b>Health Potion</b><small>Restores 40% health · you have ${P.potions}</small></div><button type="button" class="btn" data-buy="potion" ${P.silver<pp?'disabled':''}>${pp} s</button></div>`;
+  let h=`<div class="srow"><span class="cg" style="color:#d9695e">${icon('potion')}</span><div class="sinfo"><b>Health Potion</b><small>Restores 40% health · you have ${P.potions}</small></div><button type="button" class="btn" data-buy="potion" ${P.silver<pp?'disabled':''}>${pp} s</button></div>`;
   shopStock().forEach(it=>{const pr=buyPrice(it),up=itemScore(it)>itemScore(P.gear[it.slot]);
     const st=STATK.filter(([k])=>it.st[k]).map(([k,l,u])=>'+'+it.st[k]+u+' '+l).join(' · ');
     h+=`<div class="srow"><span class="cg" style="--rc:${RAR[it.rar].c};color:${RAR[it.rar].c}">${slotGlyph(it.slot)}</span><div class="sinfo"><b style="color:${RAR[it.rar].c}">${esc(it.name)}</b><small>${up?'<span class="up">Upgrade · </span>':''}${st}</small></div><button type="button" class="btn" data-buy="${it.id}" ${P.silver<pr||P.bag.length>=16?'disabled':''}>${pr} s</button></div>`;});
@@ -1700,7 +1770,7 @@ $('#talkBtn').addEventListener('click',openDialog);
 
 /* ================= BAG UI ================= */
 let selIt=null;
-function slotGlyph(s){return s==='weapon'?P.def.glyph:s==='armor'?'\u25A3':'\u25CE';}
+function slotGlyph(s){return s==='weapon'?P.def.glyph:s==='armor'?icon('armor'):icon('ring');}
 function findIt(){if(!selIt)return null;if(selIt.eq)return P.gear[selIt.eq];return P.bag.find(i=>i.id===selIt.id)||null;}
 function statLines(it,cmp){const keys=STATK.filter(([k])=>(it.st[k]||0)||(cmp&&cmp.st[k]));
   return keys.map(([k,l,u])=>{const v=it.st[k]||0;let d='';if(cmp){const dv=v-(cmp.st[k]||0);if(dv)d=` <span class="${dv>0?'up':'down'}">(${dv>0?'+':''}${dv})</span>`;}
@@ -2130,7 +2200,7 @@ function updateHud(dt){
     el.classList.toggle('nomana',P.mp<sk.mana);if(sk.dash)el.classList.toggle('dashready',P.dashCd<=0);});
   const t=P.target;
   if(t&&!t.dead){$('#tframe').hidden=false;$('#tname').textContent=t.def.name;$('#tlvl').textContent=t.lvl;$('#thp').style.width=(t.hp/t.maxHp*100)+'%';$('#thpt').textContent=Math.max(0,Math.ceil(t.hp))+' / '+t.maxHp;
-    $('#tcrest').textContent=t.def.boss?'♛':t.type==='slime'?'●':t.type==='wolf'?'▲':'■';$('#tcrest').style.background=t.def.boss?'radial-gradient(circle at 35% 30%,#d88bff,#3b1d58)':'radial-gradient(circle at 35% 30%,#a65a4f,#3a1612)';
+    {const tk=t.def.boss?'crown':'claw';if(t.__ic!==tk||$('#tcrest').dataset.k!==tk){$('#tcrest').innerHTML=icon(tk);$('#tcrest').dataset.k=tk;}$('#tcrest').style.color=t.def.boss?'#d8a8ff':'#e08a7c';}
     tgtRing.visible=true;tgtRing.position.set(t.obj.position.x,.08,t.obj.position.z);tgtRing.scale.setScalar(t.obj.scale.x*(t.type==='golem'||t.def.boss?1.8:1.1));}
   else{$('#tframe').hidden=true;tgtRing.visible=false;}
   if(frame%10===0){const b=[];if(P.buffs.cry>0)b.push(`<span class="buff">Battle Cry ${Math.ceil(P.buffs.cry)}s</span>`);if(P.buffs.stealth>0)b.push(`<span class="buff">Vanished ${Math.ceil(P.buffs.stealth)}s</span>`);
