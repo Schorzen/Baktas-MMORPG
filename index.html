@@ -1037,9 +1037,9 @@ function animateHero(obj,key,t,move){
   if(u.drive){
     // ease every joint toward its target: no snapping, natural overlap and follow-through
     const dt=Math.min(.1,Math.max(0,NOW-(u.lt||NOW)));u.lt=NOW;const sm=u.sm||(u.sm={});const rawL=p.aLx,rawR=p.aRx;
-    for(const k in p){if(sm[k]==null){sm[k]=p[k];continue;}let d=p[k]-sm[k];if(WRAP[k])d=Math.atan2(Math.sin(d),Math.cos(d));sm[k]+=d*Math.min(1,dt*(SMR[k]||20));p[k]=sm[k];}
+    for(const k in p){if(sm[k]==null){sm[k]=p[k];continue;}let d=p[k]-sm[k];if(WRAP[k])d=Math.atan2(Math.sin(d),Math.cos(d));sm[k]+=d*Math.min(1,dt*(SMR[k]||20));if(WRAP[k])sm[k]=Math.atan2(Math.sin(sm[k]),Math.cos(sm[k]));p[k]=sm[k];}
     p.wL+=clamp((p.aLx-rawL)*.7,-.7,.7);p.wR+=clamp((p.aRx-rawR)*.7,-.7,.7);
-    const tw=clamp(p.by,-1,1),spin=p.by-tw,ut=tw-p.hipY*.6,c=1.0;
+    const ab=Math.abs(p.by),fo=1-clamp((ab-1)/.8,0,1),tw=clamp(p.by,-1,1)*fo*fo*(3-2*fo),spin=p.by-tw,ut=tw-p.hipY*.6,c=1.0;
     r.body.rotation.set(p.roll,spin,0);r.body.position.set(0,p.bh+c*(1-Math.cos(p.roll)),p.bf-c*Math.sin(p.roll));
     const sxz=1+(1-p.sy)*.5;r.body.scale.set(sxz,p.sy,sxz);
     r.hips.rotation.set(p.bx*.2,p.hipY,p.hipZ+p.bz*.3);
