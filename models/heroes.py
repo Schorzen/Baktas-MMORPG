@@ -227,7 +227,7 @@ def part(VF, m, weights, smooth=True, name='part'):
 LIMB_R = ['upperarm_#', 'forearm_#', 'hand_#']
 LEG_R = ['thigh_#', 'shin_#', 'foot_#']
 
-def hand(k, m, s):
+def hand(k, m, s, fm=None):
     """Palm + four curled fingers + thumb, shaped to close around a grip."""
     x = .268 * k
     part(ell((x, 1.05, .03), (.022, .048, .042), 10, 8), m, 'hand_' + s, name='palm')
@@ -237,17 +237,17 @@ def hand(k, m, s):
         def fw(v, z=z):
             t = max(0., min(1., math.hypot(v[0] - x, v[1] - 1.012) / .045))
             return {'hand_' + s: 1 - t, 'fingers_' + s: t} if t > 0 else {'hand_' + s: 1.}
-        part(tube(pts, [.0115, .011, .0105, .0098, .008], 6), m, fw, name='finger')
+        part(tube(pts, [.0115, .011, .0105, .0098, .008], 6), fm or m, fw, name='finger')
     part(tube([(x - .006 * k, 1.07, .062), (x - .016 * k, 1.04, .076), (x - .03 * k, 1.015, .07), (x - .038 * k, 1.0, .058)], [.013, .012, .011, .009], 6), m, 'hand_' + s, name='thumb')
 
-def body(look, arm_mat, leg_mat, hand_mat, foot_mat=None, head_mat=None, ears=True, torso_mat=None):
+def body(look, arm_mat, leg_mat, hand_mat, foot_mat=None, head_mat=None, ears=True, torso_mat=None, finger_mat=None):
     skin = mat('Skin', look['skin'], .62)
     for k in (1, -1):
         s = 'R' if k > 0 else 'L'
         arm = tube([(.215 * k, 1.775, 0), (.232 * k, 1.6, -.005), (.25 * k, 1.43, -.01), (.262 * k, 1.27, .005), (.27 * k, 1.13, .02)],
                    [.058, .053, .043, .039, .031], 14)
         part(arm, arm_mat, ('auto', ['chest', 'upperarm_' + s, 'forearm_' + s, 'hand_' + s]), name='arm')
-        hand(k, hand_mat, s)
+        hand(k, hand_mat, s, finger_mat)
         leg = tube([(.1 * k, 1.12, 0), (.105 * k, .86, .008), (.11 * k, .6, .015), (.113 * k, .35, .0), (.115 * k, .12, -.01)],
                    [.084, .07, .053, .049, .038], 14)
         part(leg, leg_mat, ('auto', ['hips', 'thigh_' + s, 'shin_' + s]), name='leg')
@@ -580,6 +580,129 @@ def build_assassin():
         wpart(g, xf(lathe([(0, .1), (.04, .04), (0, 0)], seg=5), rot=(math.pi / 2, 0, 0), t=(0, 0, -.13)), crys)
     return 'assassin'
 
+def build_gunslinger():
+    """Street outlaw: hooded black jacket with red lining, tank top, harness, cargo pants, high-tops, shades, pistol + slung rifle."""
+    L = dict(skin=0xb9825f, main=0x1d1d21, trim=0xb3262b, dark=0x121214, glow=0xff5a4a)
+    skin = mat('Skin', L['skin'], .6); tat = mat('SkinTat', L['skin'], .6)
+    jacket = mat('Jacket', 0x1e1e22, .85); red = mat('Lining', 0xb3262b, .7); pants = mat('Pants', 0x1a1a1e, .9)
+    tank = mat('Tank', 0xd8d6d0, .85); leather = mat('Leather', 0x2c2c30, .5, .1); steel = mat('Metal', 0xbfc4cc, .28, .85)
+    glove = mat('Glove', 0x141416, .7); hair = mat('Hair', 0x17120f, .85); fade = mat('HairFade', 0x5f4334, .8)
+    sole = mat('Sole', 0xdedbd2, .8); lens = mat('Lens', 0x090a0d, .06, .9); gun = mat('Gunmetal', 0x2c2e33, .32, .8)
+    shoe = mat('Shoe', 0x151517, .6, .05); white = mat('Emblem', 0xe9e7e2, .7)
+    body(L, tat, pants, glove, foot_mat=shoe, torso_mat=tank, finger_mat=skin)
+    eyes(mat('Eye', 0x1d1a18, .4), hair)
+    core = ('auto', ['hips', 'spine', 'chest'])
+    # ---- jacket: open at the front, red lining on the edges
+    prof = [(.2, 1.08), (.196, 1.2), (.184, 1.34), (.192, 1.46), (.214, 1.58), (.224, 1.68), (.216, 1.75), (.168, 1.815)]
+    a_open = math.radians(24)
+    part(lathe(prof, sz=.74, seg=26, a0=a_open, a1=TAU - a_open), jacket, core, name='jacket')
+    part(lathe([(r - .012, y) for r, y in prof], sz=.74, seg=26, a0=a_open, a1=TAU - a_open), red, core, name='lining')
+    for sgn in (1, -1):
+        a = a_open * sgn
+        part(tube([(math.sin(a) * r, y, math.cos(a) * r * .74) for r, y in prof], [.013] * len(prof), 6), red, core, name='edge')
+        part(tube([(math.sin(a * 1.25) * (r + .004), y, math.cos(a * 1.25) * (r + .004) * .74) for r, y in prof[:6]], [.006] * 6, 5), steel, core, name='zip')
+    part(lathe([(.2, 1.06), (.208, 1.085), (.2, 1.11)], sz=.74, seg=26, a0=a_open, a1=TAU - a_open), jacket, 'hips', name='hem')
+    hood = [(math.sin(a) * .15, 1.845 - .02 * abs(math.cos(a)), math.cos(a) * .15 * .85) for a in [math.radians(d) for d in range(62, 299, 18)]]
+    part(tube(hood, [.03] + [.056] * (len(hood) - 2) + [.03], 10), jacket, ('auto', ['chest', 'neck']), name='hoodroll')
+    part(tube([(x * .78, y + .028, z * .78) for x, y, z in hood], [.02] + [.034] * (len(hood) - 2) + [.02], 8), red, ('auto', ['chest', 'neck']), name='hoodlining')
+    part(ell((0, 1.74, -.17), (.16, .1, .07), 14, 10), jacket, 'chest', name='hoodback')
+    for k in (1, -1):
+        s = 'R' if k > 0 else 'L'
+        up = ('auto', ['chest', 'upperarm_' + s])
+        part(ell((.205 * k, 1.755, 0), (.088, .082, .088), 12, 8), jacket, up, name='jshoulder')
+        part(tube([(.215 * k, 1.78, 0), (.234 * k, 1.6, -.005), (.25 * k, 1.45, -.01)], [.072, .068, .064], 14), jacket, up, name='sleeve')
+        for dy in (-.022, .012):
+            part(lathe([(.062, -.018), (.074, -.006), (.074, .006), (.062, .018)], c=(.2505 * k, 1.435 + dy, -.01), seg=14), jacket, 'upperarm_' + s, name='cuffroll')
+        part(lathe([(.063, -.006), (.068, 0), (.063, .006)], c=(.2505 * k, 1.404, -.01), seg=14), red, 'upperarm_' + s, name='cuffred')
+        part(tube([(.288 * k, 1.75, 0), (.303 * k, 1.6, -.005), (.317 * k, 1.47, -.01)], [.009] * 3, 5, flat=.5), red, up, name='stripe')
+        # harness strap over the shoulder, with buckles
+        strap = [(.105 * k, 1.13, .168), (.108 * k, 1.4, .176), (.113 * k, 1.62, .178), (.12 * k, 1.8, .1), (.12 * k, 1.845, -.02), (.115 * k, 1.7, -.172), (.11 * k, 1.4, -.172), (.105 * k, 1.13, -.165)]
+        part(tube(strap, [.024] * len(strap), 8, flat=.32), leather, core, name='strap')
+        for y in (1.5, 1.28):
+            part(cube((.109 * k, y, .188), (.056, .036, .016)), steel, core, smooth=False, name='buckle')
+        part(cube((.11 * k, 1.66, .182), (.05, .07, .03)), leather, 'chest', smooth=False, name='strappouch')
+        # fingerless glove cuff, knuckle guard
+        part(lathe([(.035, -.02), (.04, 0), (.036, .02)], c=(.27 * k, 1.118, .02), seg=12), glove, 'hand_' + s, name='glovecuff')
+        part(cube((.29 * k, 1.045, .03), (.012, .04, .07)), red, 'hand_' + s, smooth=False, name='knuckle')
+        # cargo pants: side pockets, ankle cuffs
+        part(cube((.19 * k, .78, .005), (.04, .17, .115)), pants, 'thigh_' + s, smooth=False, name='cargo')
+        part(cube((.196 * k, .845, .005), (.042, .045, .125)), pants, 'thigh_' + s, smooth=False, name='cargoflap')
+        part(lathe([(.05, -.03), (.058, -.01), (.058, .015), (.05, .03)], c=(.1145 * k, .19, -.008), seg=12), pants, 'shin_' + s, name='pantcuff')
+        part(xf(lathe([(0, .03), (.04, .024), (.056, 0), (.04, -.026)], seg=10), t=(.11 * k, .6, .05)), pants, 'shin_' + s, name='kneepad')
+        # high-top sneakers
+        ft = ('auto', ['shin_' + s, 'foot_' + s])
+        part(tube([(.115 * k, .215, -.012), (.115 * k, .12, -.008)], [.05, .054], 12), shoe, ft, name='hightop')
+        part(lathe([(.051, -.008), (.056, 0), (.051, .008)], c=(.115 * k, .215, -.012), seg=12), red, 'shin_' + s, name='collar')
+        part(ell((.115 * k, .016, .052), (.054, .02, .128), 12, 6), sole, 'foot_' + s, name='sole')
+        part(ell((.115 * k, .05, .138), (.04, .03, .034), 10, 6), sole, 'foot_' + s, name='toecap')
+        part(cube((.161 * k, .075, .03), (.006, .045, .1)), red, 'foot_' + s, smooth=False, name='sidepanel')
+        part(cube((.069 * k, .075, .03), (.006, .045, .1)), sole, 'foot_' + s, smooth=False, name='sidepanel2')
+        for i in range(3):
+            part(tube([(.092 * k, .1 + i * .03, .075 - i * .022), (.138 * k, .1 + i * .03, .075 - i * .022)], [.005, .005], 4), red, 'foot_' + s, name='lace')
+    part(tube([(-.105, 1.56, .18), (0, 1.565, .158), (.105, 1.56, .18)], [.016] * 3, 6, flat=.4), leather, 'chest', name='cheststrap')
+    part(cube((0, 1.565, .166), (.04, .036, .014)), steel, 'chest', smooth=False, name='chestbuckle')
+    # ---- belt, pouches, hip section of the pants
+    part(lathe([(.172, 1.19), (.182, 1.1), (.176, 1.0), (.146, .93)], sz=.74, seg=22), pants, ('auto', ['hips', 'thigh_R', 'thigh_L']), name='hip')
+    part(lathe([(.18, 1.105), (.19, 1.135), (.18, 1.165)], sz=.76, seg=24), leather, 'hips', name='belt')
+    part(cube((0, 1.135, .146), (.075, .052, .02)), steel, 'hips', smooth=False, name='beltbuckle')
+    part(cube((-.15, 1.09, .09), (.07, .09, .05), (0, -.6, 0)), leather, 'hips', smooth=False, name='pouch')
+    part(cube((.16, 1.1, -.08), (.07, .08, .05), (0, 2.2, 0)), leather, 'hips', smooth=False, name='pouch2')
+    # thigh holster rig (right) and magazine pouches (left)
+    for y in (.97, .84):
+        part(lathe([(.086, -.012), (.092, 0), (.086, .012)], c=(.106, y, .008), seg=12), leather, 'thigh_R', name='holsterstrap')
+    part(cube((.203, .9, .0), (.03, .21, .085)), leather, 'thigh_R', smooth=False, name='holster')
+    part(tube([(.19, 1.1, .0), (.2, 1.0, .0)], [.014, .014], 5, flat=.4), leather, ('auto', ['hips', 'thigh_R']), name='holsterdrop')
+    part(lathe([(.086, -.012), (.092, 0), (.086, .012)], c=(-.106, .92, .008), seg=12), leather, 'thigh_L', name='magstrap')
+    for z in (-.035, .035):
+        part(cube((-.2, .9, z), (.03, .1, .055)), leather, 'thigh_L', smooth=False, name='mag')
+    # ---- watch, necklace
+    part(lathe([(.036, -.012), (.04, 0), (.036, .012)], c=(-.2665, 1.175, .016), seg=12), leather, 'forearm_L', name='watchband')
+    part(ell((-.305, 1.175, .016), (.008, .023, .023), 10, 6), steel, 'forearm_L', name='watch')
+    part(tube([(-.062, 1.81, .07), (-.04, 1.71, .128), (0, 1.655, .146), (.04, 1.71, .128), (.062, 1.81, .07)], [.0045] * 5, 5), steel, 'chest', name='chain')
+    part(cube((0, 1.625, .15), (.012, .05, .007)), steel, 'chest', smooth=False, name='cross')
+    part(cube((0, 1.635, .15), (.032, .012, .007)), steel, 'chest', smooth=False, name='cross2')
+    # ---- head: fade haircut, trimmed beard, aviator shades
+    part(ell((0, 2.088, -.034), (.1095, .078, .106), 16, 10), fade, 'head', name='fade')
+    part(ell((0, 2.13, -.014), (.105, .078, .12), 16, 10), hair, 'head', name='hair')
+    part(ell((0, 2.172, .045), (.07, .04, .062), 12, 8), hair, 'head', name='quiff')
+    part(lathe([(.0905, 1.972), (.0945, 1.945), (.084, 1.912), (.045, 1.899)], c=(0, 0, .03), sz=1.07, seg=16, a0=math.radians(-118), a1=math.radians(118)), hair, 'head', name='beard')
+    for k in (1, -1):
+        part(tube([(.1 * k, 2.05, .02), (.098 * k, 2.0, .035), (.09 * k, 1.965, .05)], [.012, .014, .012], 6, flat=.5), hair, 'head', name='sideburn')
+    part(tube([(-.036, 1.992, .118), (0, 1.997, .126), (.036, 1.992, .118)], [.008, .01, .008], 6), hair, 'head', name='moustache')
+    part(ell((0, 1.93, .1), (.03, .022, .025), 8, 6), hair, 'head', name='chin')
+    for k in (1, -1):
+        part(ell((.043 * k, 2.066, .113), (.031, .023, .008), 12, 6), lens, 'head', name='lens')
+        ring = [(.043 * k + math.cos(a) * .032, 2.066 + math.sin(a) * .024, .114) for a in [TAU * i / 12 for i in range(13)]]
+        part(tube(ring, [.0035] * 13, 4, cap=False), steel, 'head', name='rim')
+        part(tube([(.074 * k, 2.074, .108), (.104 * k, 2.072, .05), (.11 * k, 2.066, -.02)], [.0035] * 3, 4), steel, 'head', name='temple')
+    part(tube([(-.013, 2.074, .12), (.013, 2.074, .12)], [.004, .004], 4), steel, 'head', name='bridge')
+    # ---- original back emblem: a white hexagon crossed by a red bar
+    hexp = [(-.035 + math.sin(a) * .085, 1.44 + math.cos(a) * .085, -.168) for a in [TAU * i / 6 for i in range(7)]]
+    part(tube(hexp, [.009] * 7, 4, cap=False), white, ('auto', ['spine', 'chest']), name='emblem')
+    part(cube((-.035, 1.44, -.172), (.018, .21, .008), (0, 0, .62)), red, ('auto', ['spine', 'chest']), smooth=False, name='emblembar')
+    # ---- rifle slung across the back
+    def rifle(VF, m, smooth=True, name='rifle'):
+        part(xf(VF, rot=(0, 0, -.42), t=(.12, 1.5, -.24)), m, 'chest', smooth=smooth, name=name)
+    rifle(cube((0, 0, 0), (.05, .34, .07)), gun, False)
+    rifle(tube([(0, .17, 0), (0, .56, 0)], [.016, .014], 8), gun)
+    rifle(tube([(0, .2, .0), (0, .42, .0)], [.028, .026], 8), leather, name='handguard')
+    rifle(tube([(0, .56, 0), (0, .62, 0)], [.02, .02], 8), steel, name='muzzle')
+    rifle(cube((0, -.3, .0), (.04, .26, .09)), leather, False, 'stock')
+    rifle(cube((0, -.02, .09), (.03, .14, .1), (.25, 0, 0)), gun, False, 'magazine')
+    rifle(tube([(0, -.06, -.06), (0, .14, -.06)], [.022, .022], 8), gun, name='scope')
+    rifle(cube((0, .04, -.04), (.02, .05, .03)), gun, False, 'scopemount')
+    part(tube([(.17, 1.77, .09), (.06, 1.5, .185), (-.1, 1.22, .165), (-.17, 1.12, .0), (-.1, 1.2, -.17), (.06, 1.5, -.19), (.17, 1.77, -.09)], [.013] * 7, 6, flat=.35), leather, core, name='sling')
+    # ---- pistol (origin at the grip, barrel along +z)
+    wpart('W_main', cube((0, 0, 0), (.03, .125, .05), (.25, 0, 0)), mat('Grip', 0x1a1a1c, .6), False)
+    wpart('W_main', cube((0, .083, .1), (.035, .046, .25)), gun, False)
+    wpart('W_main', cube((0, .083, .1), (.037, .016, .2)), steel, False)
+    wpart('W_main', tube([(0, .086, .22), (0, .086, .245)], [.011, .011], 8), steel)
+    wpart('W_main', tube([(0, .055, .045), (0, .02, .055), (0, .018, .1), (0, .058, .115)], [.005] * 4, 5), gun)
+    wpart('W_main', cube((0, .112, .2), (.008, .012, .012)), steel, False)
+    wpart('W_main', cube((0, .112, -.01), (.02, .012, .012)), steel, False)
+    wpart('W_main', cube((0, -.068, -.018), (.034, .012, .056), (.25, 0, 0)), steel, False)
+    return 'gunslinger'
+
 def armor_tiers():
     """Extra armor pieces shown when rare/epic (tier 2) or legendary (tier 3) armor is equipped."""
     for tier, pre in ((2, 'A2_'), (3, 'A3_')):
@@ -689,6 +812,6 @@ def build(fn):
 
 if __name__ == '__main__':
     which = sys.argv[sys.argv.index('--') + 2:] if '--' in sys.argv else []
-    for fn in (build_warrior, build_mage, build_marksman, build_assassin):
+    for fn in (build_warrior, build_mage, build_marksman, build_assassin, build_gunslinger):
         if not which or fn.__name__[6:] in which:
             build(fn)

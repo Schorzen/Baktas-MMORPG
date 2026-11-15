@@ -10,6 +10,7 @@ Open the GitHub Pages link on your phone, turn it sideways and tap **Enter World
 - **Mage** – Fire Bolt, Frost Nova, Meteor, Blink
 - **Marksman** – Aimed Shot, Volley, Piercing Arrow, Evasive Roll
 - **Assassin** – Shadow Stab (teleports to enemies up to 9 m away), Shadowstep, Fan of Knives, Vanish
+- **Gunslinger** – Quick Shot, Fan Fire, Deadeye, Combat Roll
 
 ## Controls
 - Left stick: move
